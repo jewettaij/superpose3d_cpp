@@ -1,43 +1,20 @@
-<<<<<<< HEAD
 [![Build Status](https://travis-ci.org/jewettaij/superpose3d_cpp.svg?branch=master)](https://travis-ci.org/jewettaij/superpose3d_cpp.svg?branch=master)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 [![GitHub All Releases](https://img.shields.io/github/downloads/jewettaij/superpose3d_cpp/total)]()
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jewettaij/superpose3d_cpp)]()
-=======
-[![Build Status](https://travis-ci.org/jewettaij/superpose3d.svg?branch=master)](./.travis.yml)
-[![GitHub](https://img.shields.io/github/license/jewettaij/superpose3d)](./LICENSE.md)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/superpose3d)](https://pypistats.org/packages/moltemplate)
-[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jewettaij/superpose3d)]()
-
->>>>>>> 87d35ac1174a02406891be4a71e5dbe4c136902f
 
 
 superpose3d_cpp
 ===========
 
 
-<<<<<<< HEAD
-**superpose3d** is a header-only C++ library containing a defninition
-of a class whose single public member function, *Superpose3d()*,
+**superpose3d_cpp** is a header-only C++ library containing a defninition
+of a class whose single public member function, *Superpose()*,
 takes two N x 3 multidimensional arrays
 (*of the same length*, **N**) representing points
-from a point cloud (**X_i** and **x_i**)
-as arguments.
+from a point cloud (**X_i** and **x_i**) as arguments.
 Treating them as rigid objects,
-*Superpose3D::Superpose3D()* attempts to superimpose
-=======
-```python
-def Superpose3D(X_i,    # <-- Nx3 array of coords for the "frozen" point cloud
-                x_i,    # <-- Nx3 array of coords for the "mobile" point cloud
-                w_i=None, #<- optional weights for the calculation of RMSD
-                          #   (default w_i = 1 for all i)
-                allow_rescale=False)  #<--attempt to rescale mobile point cloud?
-```
-
-Superpose3D() takes two ordered lists (or numpy arrays) of xyz coordinates
-(*of the same length*, **N**) representing points in a point cloud (**X_i** and
-**x_i**). Treating them as rigid objects, "Superpose3D()" attempts to superimpose
->>>>>>> 87d35ac1174a02406891be4a71e5dbe4c136902f
+*Superpose3D::Superpose()* attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
@@ -50,9 +27,9 @@ If *w_i=nullptr*, equal weights are used.  In that case:
 ```
 ...where:
 ```
-   T_j  = a translation vector (a 1-D numpy array containing x,y,z displacements),
-   R_ij = a rotation matrix    (a 3x3 numpy array whose determinant = 1),
-    c   = a scalar             (a number)
+   T = a translation vector (a 1-D numpy array containing x,y,z displacements),
+   R = a rotation matrix    (a 3x3 numpy array whose determinant = 1),
+   c = a scalar             (a number)
 ```
 
 ##  Example usage

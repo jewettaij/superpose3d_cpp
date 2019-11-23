@@ -15,23 +15,23 @@ void main(int argc, char **argv) {
 
   // Allocate space for X and x, and load the coordinates (omitted)
 
-  Superpose3D superposer(N);
-  superposer.Superpose(X, x);
+  Superpose3D s(N);
+  s.Superpose(X, x);
 
   // Print the optimal rotation and translations
 
-  cout << "Optimal superposition rmsd = " << superposer.rmsd << "\n";
-  cout << "optimal translation, Ti =\n"<<superposer.T[0]<<" "<<superposer.T[1]<<" "<<superposer.T[2]<<"\n";
+  cout << "Optimal superposition rmsd = " << s.rmsd << "\n";
+  cout << "optimal translation, Ti =\n"<<s.T[0]<<" "<<s.T[1]<<" "<<s.T[2]<<"\n";
   cout << "Optimal Rotation, Rij = \n";
   for (int iy = 0; iy < 3; iy++) {
     for (int ix = 0; ix < 3; ix++)
-      cout << superpose.R[iy][ix] << " ";
+      cout << s.R[iy][ix] << " ";
     cout << "\n";
   }
 
   // Since one point cloud is just a rotate version of the other, we expect
   // that the RMSD between them should be 0.  Insure that this is so.
-  assert(abs(superposer.rmsd) < 1.0e-6);
+  assert(abs(s.rmsd) < 1.0e-6);
 
   // Now create some versions of "X" that have been modified in some way
   // and try again:
@@ -52,16 +52,34 @@ void main(int argc, char **argv) {
   }
 
   // Now try superposition again using these new coordinates
-  result = Superpose3D(X, Xscshift, nullptr, true);
+  result = s.Superpose(X, Xscshift, nullptr, true);
   
-  cout << "Optimal Scale factor, C = " << superposer.C << "\n";
-  cout << "Optimal superposition rmsd = " << superposer.rmsd << "\n";
-  cout << "optimal translation, Ti =\n"<<superposer.T[0]<<" "<<superposer.T[1]<<" "<<superposer.T[2]<<"\n";
+  cout << "Optimal Scale factor, C = " << s.C << "\n";
+  cout << "Optimal superposition rmsd = " << s.rmsd << "\n";
+  cout << "optimal translation, Ti =\n"<<s.T[0]<<" "<<s.T[1]<<" "<<s.T[2]<<"\n";
   cout << "Optimal Rotation, Rij = \n";
   for (int iy = 0; iy < 3; iy++) {
     for (int ix = 0; ix < 3; ix++)
-      cout << superpose.R[iy][ix] << " ";
+      cout << s.R[iy][ix] << " ";
     cout << "\n";
   }
+
+  CONTINUEHERE: the following code needs to be converted from python to c++
+
+  # Does the RMSD returned in result[0] match the RMSD calculated manually?
+  R = np.matrix(result[1])              # rotation matrix
+  T = np.matrix(result[2]).transpose()  # translation vector (3x1 matrix)
+  c = result[3]                         # scalar
+  _x = np.matrix(xscshift).transpose()
+  _xprime = c*R*_x + T
+  xprime = np.array(_xprime.transpose()) # convert to length 3 numpy array
+  RMSD = 0.0
+
+  for i in range(0, len(X)):
+      RMSD += ((X[i][0] - xprime[i][0])**2 +
+               (X[i][1] - xprime[i][1])**2 +
+               (X[i][2] - xprime[i][2])**2)
+
+  assert(abs(RMSD - result[0]) < 1.0e-6)
 
 } // main()
