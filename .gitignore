@@ -1,0 +1,8 @@
+# compiled binaries
+*.so *.o
+test_superpose3d
+
+# text-editor temporary files:
+*~
+
+
