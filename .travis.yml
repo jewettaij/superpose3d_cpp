@@ -11,35 +11,10 @@ matrix:
       dist: xenial
       #install:
       #  - sudo apt-get install -qq cppcheck
+      #  - git clone https://github.com/kward/shunit2 shunit2
       script:
-        - source alternate_compiler_settings/for_debugging_and_profiling/setup_gcc_dbg.sh
-        - make clean
-        - make
         - cd tests
-        - ../bin/filter_mrc/filter_mrc -i test_image_membrane.rec -mask-rect 1 14 2 14 2 14 -out test_image_fluct.rec -fluct 60
-        #- cppcheck --quiet --error-exitcode=1   #(Am I invoking cppcheck correctly?)
-        - ../bin/filter_mrc/filter_mrc -w 19.2 -w 19.2 -i test_image_membrane.rec -out test_image_membrane_surface_55_tv_4_4_clust_1e+09_0.707_0.707_0.707_0.707.rec -surface minima 55 -surface-tv 4 -surface-tv-angle-exponent 4 -connect-vector-saliency 0.707 -connect-vector-neighbor 0.707 -connect-tensor-saliency 0.707 -connect-tensor-neighbor 0.707 -connect 1e+09 -surface-normals-file test_image_membrane_surface_55_tv_4_4_clust_1e+09_0.707_0.707_0.707_0.707.ply -select-cluster 1
-        #- cppcheck --quiet --error-exitcode=1   #(Am I invoking cppcheck correctly?)
-
-        - rm -f test_image_fluct.rec test_image_membrane_surface_55*
+        - gcc -o test_superpose3d test.c
+        #- cppcheck --quiet --error-exitcode=1
+        - ./test_superpose3d
         - cd ../
-
-    - language: bash
-      compiler: clang
-      dist: xenial
-      before_install:
-        - export LD_LIBRARY_PATH=/usr/local/clang/lib:$LD_LIBRARY_PATH
-      #install:
-      #  - sudo apt-get install -qq cppcheck
-      before_script:
-        # Install "shunit2"
-        - git clone https://github.com/kward/shunit2 shunit2
-      script:
-        - source setup_clang.sh
-        - make clean
-        - make
-        - bash tests/test_fluctuation_filter.sh
-        - bash tests/test_blob_detection.sh
-        - bash tests/test_watershed.sh
-        - bash tests/test_membrane_detection.sh
-

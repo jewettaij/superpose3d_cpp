@@ -64,6 +64,20 @@ void main(int argc, char **argv) {
     cout << "\n";
   }
 
+  // Now apply this transformation to the new coordinates
+  // and recalculate the RMSD manually (by comparing coordinate sets).
+  // Check to see if the RMSD computed by two different methods agrees.
+  double **aaXprime;
+  double *aXprime;
+  Alloc2D(s.size(), 3, &aXprime, &aaXprime);
+  for (size_t i = 0; i < s.npoints(); i++) {
+    for (int iy = 0; iy < 3; iy++) {
+      for (int ix = 0; ix < 3; ix++)
+        cout << s.R[iy][ix] << " ";
+      cout << "\n";
+    }
+  }
+  
   CONTINUEHERE: the following code needs to be converted from python to c++
 
   # Does the RMSD returned in result[0] match the RMSD calculated manually?
@@ -81,5 +95,6 @@ void main(int argc, char **argv) {
                (X[i][2] - xprime[i][2])**2)
 
   assert(abs(RMSD - result[0]) < 1.0e-6)
+  Dealloc2D(&aXprime, &aaXprime);
 
 } // main()

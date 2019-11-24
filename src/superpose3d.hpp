@@ -22,6 +22,8 @@
 #ifndef _SUPERPOSE3D_HPP
 #define _SUPERPOSE3D_HPP
 
+#include <lambda_lanczos.hpp>
+using lambda_lanczos::LambdaLanczos;
 
 
 namespace superpose3d_lammps {
@@ -102,6 +104,44 @@ Dealloc2D(size_t M,           //!< size of the array (outer)
   Dealloc2D(size, paX, paaX);
 }
 
+/// @brief PEigenCalculator caluclates the principal (largest)
+/// eigenvalue and corresponding eigenvector of an n x n matrix.
+/// Right now it is just a wrapper enclosing "lambda-lanczos".
+/// (That might change of other developers want to swap it with 
+///  the "Eigen" librar or something else.)
+template<typename Scalar>
+class PEigenCalculator
+{
+  Scalar **M;
+  size_t n;   // the size of the matrix (assumed to be square)
+  LambdaLanczos ll_engine;
+  auto mv_mul = [&](Scalar const *in, Scalar *out) {
+    // the matrix-vector multiplication routine
+    for(int i = 0;i < n;i++) {
+      for(int j = 0;j < n;j++) {
+        out[i] += M[i][j]*in[j];
+      }
+    } 
+  };
+
+public:
+  PEigenCalcator(size_t _n,    //!< size of the (square)matrix
+                 bool find_max //!< find the largest eigenvalue?
+                 ):ll_engine(mv_mul, n, find_max)
+  {}
+
+  Scalar
+  PrincipalEigen(Scalar const* const *M,
+                 Scalar const *evect)
+  {
+    assert(evect);
+    Scalar eval;
+    size_t itern = ll_engine.run(eval, evect);
+    return eval;
+  }
+}
+
+
 
 /// @brief
 /// Superpose() is the stand-alone function invoked by
@@ -130,6 +170,7 @@ Superpose(Scalar **aaRotate,  //!< store rotation here
   if (aWeights == nulptr) {
     aWeights = new Scalar[N];
     alloc_aWeights = true;
+    PEigenCalculator eigen_calculator(4, true);
   }
 
   // Find the center of mass of each object:
@@ -249,25 +290,13 @@ Superpose(Scalar **aaRotate,  //!< store rotation here
   P[3][2] = V[2];
   P[3][3] = 0.0;
 
-  aEigenvals, aaEigenvects = LA.eigh(P);
-  #http://docs.scipy.org/doc/numpy/reference/generated/numpy.linalg.eigh.html
-
-  eval_max = aEigenvals[0];
-  i_eval_max = 0;
-  for (int i=1; i < 4; i++) {
-    if (aEigenvals[i] > eval_max) {
-      eval_max = aEigenvals[i];
-      i_eval_max = i;
-    }
-  }
-
-  // The vector "p" contains the optimal rotation (in quaternion format)
+  // The vector "p" will contain the optimal rotation (in quaternion format)
+  Scalar eval_max;
   Scalar p[4];
-  p[0] = aaEigenvects[0][ i_eval_max ];
-  p[1] = aaEigenvects[1][ i_eval_max ];
-  p[2] = aaEigenvects[2][ i_eval_max ];
-  p[3] = aaEigenvects[3][ i_eval_max ];
 
+  Scala eval_max = eigen_calculator.PrincipalEigen(P, p);
+
+  // Now normalize p
   Scalar pnorm = 0.0;
   for (int i=0; i < 4; i++)
     pnorm += p[i]*p[i];
@@ -394,18 +423,6 @@ private:
   Scalar *aXm_shifted;   //contiguous memory allocated for aaXm_shifted
   Scalar _R[9];          //contiguous memory allocated for R
 
-  void Alloc(_N) {
-    N = _N;
-    Alloc2D(N, 3, &aXf_shifted, &aaXf_shifted);
-    Alloc2D(N, 3, &aXm_shifted, &aaXm_shifted);
-    assert(aXf && aXm);
-  }
-
-  void Dealloc() {
-    Dealloc2D(aXf_shifted, aaXf_shifted);
-    Dealloc2D(aXm_shifted, aaXm_shifted);
-  }
-
 public:
   // The next 3 data members store the rotation, translation and scale
   // after optimal superposition
@@ -425,15 +442,15 @@ public:
     Dealloc();
   }
 
-  size_t size() {
+  size_t npoints() {
     return N;
   }
 
   // copy constructor
   Superpose3D(const Superpose3D<Scalar>& source) {
     Init();
-    Resize(source.size()); // allocates and initializes afXf and afXm
-    assert(N == source.size());
+    Resize(source.npoints()); // allocates and initializes afXf and afXm
+    assert(N == source.npoints());
     std::copy(source.afXf,
               source.afXf + N*3,
               afXf);
@@ -480,6 +497,44 @@ public:
                 aaXf_shifted,
                 aaXm_shifted);
   }
+
+private:
+
+  void Alloc(_N) {
+    N = _N;
+    Alloc2D(N, 3, &aXf_shifted, &aaXf_shifted);
+    Alloc2D(N, 3, &aXm_shifted, &aaXm_shifted);
+    assert(aXf && aXm);
+  }
+
+  void Dealloc() {
+    if (aaXf_shifted) {
+      assert(aXf_shifted && aaXm_shifted && aXm_shifted);
+      Dealloc2D(aXf_shifted, aaXf_shifted);
+      Dealloc2D(aXm_shifted, aaXm_shifted);
+    }
+  }
+
+  void Resize(size_t _N) {
+    Dealloc();
+    Alloc(_N);
+    assert(N == _N);
+  }
+
+  void swap(Superpose3D<Scalar> &other) {
+    std::swap(aXf_shifted, other.aXf_shifted);
+    std::swap(aXm_shifted, other.aXm_shifted);
+    std::swap(aaXf_shifted, other.aaXf_shifted);
+    std::swap(aaXm_shifted, other.aaXm_shifted);
+    std::swap(N, other.N);
+  }
+
+  Superpose3D<Scalar, Integer>&
+    operator = (Superpose3D<Scalar> source) {
+    this->swap(source);
+    return *this;
+  }
+
 
 }; // class Superpose3D
 
