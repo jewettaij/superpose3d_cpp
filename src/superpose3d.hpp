@@ -88,6 +88,7 @@ Dealloc2D(Integer const size[2], //!< size of the array in x,y directions
   }
 }
 
+
 /// @brief
 /// Slightly different version of Dealloc2D()
 /// In this version, the the size of the array specified by 2 integer arguments.
@@ -144,24 +145,30 @@ public:
 
 
 /// @brief
-/// Superpose() is the stand-alone function invoked by
-/// Superpose3D::Superpose().  You can use this function by itself without
-/// creating an instance of the "Superpose3D" class, however you incur a
-/// slow down if you do not preallocate the temporary arrys it needs.
-  
+/// _Superpose3D() is a stand-alone function invoked by
+/// Superpose3D::Superpose() that does all the work.   You can use this
+/// function by itself without creating an instance of the "Superpose3D" class.
+/// The difference is that if you use this stand alone function, if you want
+/// fast performance, you will have to allocate space for the temporary arrays
+/// "aaXf" and "aaXm", as well as initialize a PEigenCalculator, pPE in advance.
+/// Doing that is optional, but it will improve performance.
+/// If you use Superpose3D::Superpose(), all of this is done for you.
+/// (I should probably just move all of this code into Superpose3D::Superpose())
+
 
 template<typename Scalar>
 static inline Scalar
-Superpose(Scalar **aaRotate,  //!< store rotation here
-          Scalar *aTranslate, //!< store translation here
-          size_t N,           //!< number of points in both point clouds
-          Scalar const *const *aaXf_orig, //!< coords for the "frozen" object
-          Scalar const *const *aaXm_orig, //!< coords for the "mobile" object
-          Scalar const *aWeights=nullptr, //!< optional weights
-          Scalar *pC=nullptr, //!< rescale mobile object? if so store "c"here
-          Scalar **aaXf, //optional preallocated aaXf array (Nx3 array)
-          Scalar **aaXm  //optional preallocated aaXm array (Nx3 array)
-          )
+_Superpose3D(size_t N,             //!< number of points in both point clouds
+             Scalar **aaRotate,    //!< store rotation here
+             Scalar *aTranslate,   //!< store translation here
+             Scalar const *const *aaXf_orig, //!< coords for the "frozen" object
+             Scalar const *const *aaXm_orig, //!< coords for the "mobile" object
+             Scalar const *aWeights=nullptr, //!< optional weights
+             Scalar *pC=nullptr, //!< rescale mobile object? if so store "c"here
+             PEigenCalculator *pPE=nullptr, //!< optional eigenvalue calculator
+             Scalar **aaXf=nullptr,//!<optional preallocated aaXf (Nx3) array
+             Scalar **aaXm=nullptr //!<optional preallocated aaXm (Nx3) array
+             )
 {
   assert(aaRotate && aTranslate);
   assert(aaXf_orig && aaXm_orig);
@@ -170,7 +177,12 @@ Superpose(Scalar **aaRotate,  //!< store rotation here
   if (aWeights == nulptr) {
     aWeights = new Scalar[N];
     alloc_aWeights = true;
-    PEigenCalculator eigen_calculator(4, true);
+  }
+
+  alloc_pPE = false;
+  if (! pPE) {
+    alloc_pPE = true;
+    pPE = new PEigenvalueCalculator(4, true);
   }
 
   // Find the center of mass of each object:
@@ -294,7 +306,8 @@ Superpose(Scalar **aaRotate,  //!< store rotation here
   Scalar eval_max;
   Scalar p[4];
 
-  Scala eval_max = eigen_calculator.PrincipalEigen(P, p);
+  assert(pPE);
+  Scala eval_max = pPE->PrincipalEigen(P, p);
 
   // Now normalize p
   Scalar pnorm = 0.0;
@@ -402,7 +415,8 @@ Superpose(Scalar **aaRotate,  //!< store rotation here
     Dealloc2D(N, 3, &_aXm, &aaXm);
   if (alloc_aWeights)
     delete [] aWeights;
-
+  if (alloc_pPE)
+    delete pPE;
   return rmsd;
 }
 
@@ -416,9 +430,10 @@ template<typename Scalar>
 class Superposer3D {
 private:
   size_t N;              //number of points in the point clouds
+  PEigenCalculator eigen_calculator; // needed for calculating eigenvectors
+  // (contiguous) preallocated space for 2D arrays:
   Scalar **aaXf_shifted; //preallocated space for fixed point cloud (Nx3 array)
   Scalar **aaXm_shifted; //preallocated space for mobile point cloud (Nx3 array)
-  // preallocated space for 2D arrays:
   Scalar *aXf_shifted;   //contiguous memory allocated for aaXf_shifted
   Scalar *aXm_shifted;   //contiguous memory allocated for aaXm_shifted
   Scalar _R[9];          //contiguous memory allocated for R
@@ -430,13 +445,14 @@ public:
   Scalar T[3]; // store optimal translation here
   Scalar c;    // store optimal scale (typically 1,unless requested by the user)
 
-  Superpose3D(size_t _N) //!< number of points in both point clouds
+
+  Superpose3D(size_t _N  //!< number of points in both point clouds
+              )
+    :eigen_calculator(4,true)
   {
+    Init();
     Alloc(N);
-    R[0] = &(_R[0]);
-    R[1] = &(_R[3]);
-    R[2] = &(_R[6]);
-  }  
+  }
 
   ~Superpose3D() {
     Dealloc();
@@ -444,19 +460,6 @@ public:
 
   size_t npoints() {
     return N;
-  }
-
-  // copy constructor
-  Superpose3D(const Superpose3D<Scalar>& source) {
-    Init();
-    Resize(source.npoints()); // allocates and initializes afXf and afXm
-    assert(N == source.npoints());
-    std::copy(source.afXf,
-              source.afXf + N*3,
-              afXf);
-    std::copy(source.afXm,
-              source.afXm + N*3,
-              afXm);
   }
 
   /// @brief
@@ -486,19 +489,31 @@ public:
           bool allow_rescale=false        //!< rescale mobile object?
                    )
   {
-    return 
-      Superpose(Scalar **aaRotate,  //!< store rotation here
-          Scalar *aTranslate, //!< store translation here
-          N,
-          Scalar const *const *aaXf_orig, //!< coords for the "frozen" object
-          Scalar const *const *aaXm_orig, //!< coords for the "mobile" object
-          Scalar const *aWeights=nullptr, //!< optional weights
-          Scalar *pC=nullptr, //!< rescale mobile object? if so store "c"here
-                aaXf_shifted,
-                aaXm_shifted);
+    return
+      _Superpose3D(N,
+                   R,
+                   T,
+                   aaXf,
+                   aaXm,
+                   aWeights,
+                   &c,
+                   &eigen_calculator,
+                   aaXf_shifted,
+                   aaXm_shifted);
   }
 
+
 private:
+  void Init() {
+    aaXf_shifted = nullptr;
+    aaXm_shifted = nullptr;
+    aXf_shifted = nullptr;
+    aXm_shifted = nullptr;
+    //initialize the R
+    R[0] = &(_R[0]);
+    R[1] = &(_R[3]);
+    R[2] = &(_R[6]);
+  }
 
   void Alloc(_N) {
     N = _N;
@@ -519,6 +534,21 @@ private:
     Dealloc();
     Alloc(_N);
     assert(N == _N);
+  }
+
+  // copy constructor
+  Superpose3D(const Superpose3D<Scalar>& source)
+    :eigen_calculator(4,true)
+  {
+    Init();
+    Alloc(_N);
+    assert(N == source.npoints());
+    std::copy(source.afXf,
+              source.afXf + N*3,
+              afXf);
+    std::copy(source.afXm,
+              source.afXm + N*3,
+              afXm);
   }
 
   void swap(Superpose3D<Scalar> &other) {
