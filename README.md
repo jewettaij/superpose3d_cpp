@@ -22,7 +22,8 @@ between corresponding points from either point cloud, where RMSD is defined as:
 ```
    RMSD = sqrt((Σ_i  w_i * |X_i - Σ_j(c*R_ij*x_j + T_i))|^2) / (Σ_j w_j))
 ```
-If *w_i=nullptr*, equal weights are used.  In that case:
+If *w_i* are omitted (ie. if *w_i = nullptr*),
+then equal weights are used.In that case:
 ```
    RMSD = sqrt(( Σ_i |X_i - Σ_j(c*R_ij*x_j + T_i) )|^2 ) / N)
 ```
@@ -30,13 +31,15 @@ If *w_i=nullptr*, equal weights are used.  In that case:
 ```
    T = a translation vector (a 1-D numpy array containing x,y,z displacements),
    R = a rotation matrix    (a 3x3 numpy array whose determinant = 1),
-   c = a scalar             (a number)
+   c = a scale factor       (a number)
 ```
+After invoking Superpose3D::Superpose(), the optimal translation, rotation and
+scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 
 ##  Example usage
 
 ```
-#include <superpose3d.hpp>
+#include "superpose3d.hpp"
 using namespace superpose3d_lammps;
 
 int main(int argc, char **argv) {
@@ -54,16 +57,14 @@ int main(int argc, char **argv) {
   double rmsd =
     superposer.Superpose(X, x);
 
-  // Note: The optimal rotation, translation, and scale factor are stored in
+  // Note: The optimal rotation, translation, and scale factor will be stored in
   //       superposer.R, superposer.T, and superposer.c, respectively.
-
-  // NOTE: If you want to specify the weights, then invoke it this way
-  // superposer.Superpose(X, x, w);
-  // If you want to allow scale transformations, then use
-  // superposer.Superpose(X, x, w, true);
 }
 ```
-
+If you want to specify the weights (*w_i* in the formula above), then use:
+```
+superposer.Superpose(X, x, w);
+```
 This function implements a more general variant of the method from this paper:
 R. Diamond, (1988)
 "A Note on the Rotational Superposition Problem",
@@ -71,14 +72,20 @@ R. Diamond, (1988)
 
 This version has been augmented slightly to support scale transformations.  (I.E. multiplication by scalars.  This can be useful for the registration of two different annotated volumetric 3-D images of the same object taken at different magnifications.)
 
-Note that if you enable scale transformations (i.e. if *allow_rescale=true*), you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set *allow_rescale=false*.  This will prevent matching a molecule with its stereoisomer.
+By default scale transformations are disabled.  (By default $c=1$.)
+If you want to allow scale transformations, then use:
+```
+superposer.Superpose(X, x, w, true);
+```
+
+Note that if you enable scale transformations (i.e. if the fourth argument is *true*), you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
 
 
 ## Installation
 
 This is a header-only library.
-Just copy the directory containing "superpose3d.hpp" to a location in
-your *include path*.
+Just copy the directory containing "superpose3d.hpp" to a location in your
+[include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
 
 ## License
 

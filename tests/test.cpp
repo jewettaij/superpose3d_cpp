@@ -1,5 +1,4 @@
-#include <alloc2d.hpp>
-#include <superpose3d.hpp>
+#include "superpose3d.hpp"
 
 void main(int argc, char **argv) {
   const int N = 4;
@@ -69,32 +68,38 @@ void main(int argc, char **argv) {
   // Check to see if the RMSD computed by two different methods agrees.
   double **aaXprime;
   double *aXprime;
-  Alloc2D(s.size(), 3, &aXprime, &aaXprime);
-  for (size_t i = 0; i < s.npoints(); i++) {
-    for (int iy = 0; iy < 3; iy++) {
-      for (int ix = 0; ix < 3; ix++)
-        cout << s.R[iy][ix] << " ";
+  Alloc2D(N, 3, &aXprime, &aaXprime);
+  for (size_t n = 0; n < N; n++) {
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++)
+        cout << s.R[i][j] << " ";
       cout << "\n";
     }
   }
-  
-  CONTINUEHERE: the following code needs to be converted from python to c++
 
-  # Does the RMSD returned in result[0] match the RMSD calculated manually?
-  R = np.matrix(result[1])              # rotation matrix
-  T = np.matrix(result[2]).transpose()  # translation vector (3x1 matrix)
-  c = result[3]                         # scalar
-  _x = np.matrix(xscshift).transpose()
-  _xprime = c*R*_x + T
-  xprime = np.array(_xprime.transpose()) # convert to length 3 numpy array
-  RMSD = 0.0
+  // Now apply this transformation to the mobile point cloud. Save in "aaXprime"
+  for (size_t n = 0; n < N; n++) {
+    for (int i = 0; i < 3; i++) {
+      aaXprime[n][i] = 0.0;
+      for (int j = 0; j < 3; j++)
+        aaXprime[n][i] += s.c * s.R[i][j] * xscshift[j];
+      aaXprime[n][i] += s.T[i];
+    }
+  }
 
-  for i in range(0, len(X)):
-      RMSD += ((X[i][0] - xprime[i][0])**2 +
-               (X[i][1] - xprime[i][1])**2 +
-               (X[i][2] - xprime[i][2])**2)
+  // Calculate the sum-squared distance between points in the original
+  // point cloud, and the mobile point cloud (after transformation applied).
+  double RMSD = 0.0;
 
-  assert(abs(RMSD - result[0]) < 1.0e-6)
+  for (size_t n = 0; n < N; n++)
+    RMSD += ((aaXf[i][0] - aaXprime[i][0])**2 +
+             (aaXf[i][1] - aaXprime[i][1])**2 +
+             (aaXf[i][2] - aaXprime[i][2])**2);
+
+  RMSD = sqrt(RMSD / N);
+
+  assert(abs(RMSD - result[0]) < 1.0e-6);
+
   Dealloc2D(&aXprime, &aaXprime);
 
 } // main()
