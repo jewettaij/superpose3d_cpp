@@ -51,6 +51,7 @@ Alloc2D(Integer const size[2], //!< size of the array in x,y directions
 }
 
 
+
 /// @brief
 /// Slightly different version of Alloc2D()
 /// In this version, the the size of the array specified by 2 integer arguments.
@@ -115,29 +116,39 @@ class PEigenCalculator
 {
   Scalar **M;
   size_t n;   // the size of the matrix (assumed to be square)
+
   LambdaLanczos ll_engine;
-  auto mv_mul = [&](Scalar const *in, Scalar *out) {
-    // the matrix-vector multiplication routine
+
+  auto matmul = [&](const vector<double>& in, vector<double>& out) {
     for(int i = 0;i < n;i++) {
       for(int j = 0;j < n;j++) {
-        out[i] += M[i][j]*in[j];
+       out[i] += M[i][j]*in[j];
       }
     } 
   };
 
+
 public:
   PEigenCalcator(size_t _n,    //!< size of the (square)matrix
                  bool find_max //!< find the largest eigenvalue?
-                 ):ll_engine(mv_mul, n, find_max)
+                 ):ll_engine(matmul, n, find_max)
   {}
 
   Scalar
-  PrincipalEigen(Scalar const* const *M,
+  PrincipalEigen(Scalar const* const *matrix,
                  Scalar const *evect)
   {
     assert(evect);
     Scalar eval;
+
+    // We must copy the data from matrix into M.
+    // (Because "matmul" refers to M.)
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++)
+        matrix[i][j] = M[i][j];
+
     size_t itern = ll_engine.run(eval, evect);
+
     return eval;
   }
 }
