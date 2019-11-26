@@ -22,8 +22,8 @@
 #ifndef _SUPERPOSE3D_HPP
 #define _SUPERPOSE3D_HPP
 
-#include <lambda_lanczos.hpp>
-using lambda_lanczos::LambdaLanczos;
+#include "lambda_lanczos.hpp"
+using namespace lambda_lanczos::LambdaLanczos;
 
 
 namespace superpose3d_lammps {

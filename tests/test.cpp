@@ -1,4 +1,4 @@
-#include "../src/superpose3d.hpp"
+#include "superpose3d.hpp"
 
 void main(int argc, char **argv) {
   const int N = 4;

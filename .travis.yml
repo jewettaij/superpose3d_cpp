@@ -14,7 +14,7 @@ matrix:
       #  - git clone https://github.com/kward/shunit2 shunit2
       script:
         - cd tests
-        - gcc -o test_superpose3d test.c
+        - gcc -I../src -I../lambda-lanczos/include/lambda_lanczos -o test_superpose3d test.c
         #- cppcheck --quiet --error-exitcode=1
         - ./test_superpose3d
         - cd ../
