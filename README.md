@@ -32,7 +32,7 @@ then equal weights are used.  In that case:
    T = a translation vector (a 1-D numpy array containing x,y,z displacements),
    R = a rotation matrix    (a 3x3 numpy array whose determinant = 1),
    c = a scale factor       (a number)
-n```
+```
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 
