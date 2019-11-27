@@ -29,8 +29,7 @@ using namespace lambda_lanczos::LambdaLanczos;
 namespace superpose3d_lammps {
 
 
-/// @brief
-/// Allocate a 2-dimensional table row-major order
+/// @brief  Allocate a 2-dimensional table row-major order
 template<typename Entry, typename Integer>
 void Alloc2D(Integer const size[2], //!< size of the array in x,y directions
              Entry **paX,           //!< pointer to 1-D contiguous-memory array
@@ -93,23 +92,39 @@ void Dealloc2D(Entry **paX,          //!< pointer to 1-D contiguous-memory array
 template<typename Scalar>
 class PEigenCalculator
 {
-  Scalar **aaM;            // temporary array (stores the matrix)
-  Scalar *aM;              // temporary array (contiguous version of aaM[][])
-  vector<Scalar> evec;     // temporary array (needed by lambda_lanzcos)
   size_t n;                // the size of the matrix
+  Scalar **aaM;            // stores the matrix
+  Scalar *aM;              // (contiguous version of aaM[][])
+  vector<Scalar> evec;     // preallocated vector (needed by lambda_lanzcos)
 
   LambdaLanczos<Scalar> ll_engine;  // this is the object that does the work
 
 public:
 
-  PEigenCalculator(size_t _n,    //!< size of the matrix
-                   bool find_max //!< find the largest eigenvalue?
-                   ):ll_engine(), evec(_n, 0.0)
-  {
-    n = _n;
-    Alloc2D(n, n, &aM, &aaM);
-    ll_engine.SetSize(_n);
+  void SetSize(int n) {
+    if (this->n != n) {
+      this->n = n;
+      evec.resize(n);
+      if (aM && aaM)
+        Dealloc2D(&aM, &aaM);
+      if (n > 0)
+        Alloc2D(n, n, &aM, &aaM);
+      else {
+        aM = nullptr;
+        aaM = nullptr;
+      }
+    }
+    ll_engine.SetSize(n);
+  }
 
+  void SetFindMax(bool findmax) {
+    ll_engine.SetFindMax(findmax);
+  }
+
+  void Init() {
+    n = 0;
+    aM = nullptr;
+    aaM = nullptr;
     auto matmul = [&](const vector<double>& in, vector<double>& out) {
       for(int i = 0;i < n;i++) {
         for(int j = 0;j < n;j++) {
@@ -117,18 +132,23 @@ public:
         }
       } 
     };
-
     ll_engine.SetMul(matmul);
-
     auto init_vec = [&](vector<double>& vec) {
       for(int i = 0;i < n;i++) {
         vec[i] = 0.0;
       }
       vec[0] = 1.0;
     };
-
     ll_engine.SetInitVec(init_vec);
-  } // PEigenCalculator()
+  }
+
+
+  PEigenCalculator(int n=0, bool findmax = false):ll_engine(), evec()
+  {
+    Init();
+    SetSize(n);
+    SetFindMax(findmax);
+  }
 
 
   /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
@@ -139,6 +159,8 @@ public:
                  Scalar *eigenvector=nullptr  //!< optional: store the eigenvector here
                  )
   {
+    assert(n > 0);
+
     Scalar eval;
 
     // We must copy the data from matrix into M.
@@ -163,7 +185,36 @@ public:
     Dealloc2D(&aM, &aaM);
   }
 
+  // copy constructor
+  PEigenCalculator(const PEigenCalculator<Scalar>& source)
+  {
+    Init();
+    SetSize(source.n);
+    assert(n == source.n);
+    ll_engine = source.ll_engine;
+    evec = source.evec;
+    std::copy(source.aM,
+              source.aM + n*n,
+              aM);
+  }
+
+  void swap(PEigenCalculator<Scalar> &other) {
+    std::swap(n, other.n);
+    std::swap(ll_engine, other.ll_engine);
+    std::swap(evec, other.evec);
+    std::copy(other.aM,
+              other.aM + n*n,
+              aM);
+  }
+
+  PEigenCalculator<Scalar>&
+    operator = (PEigenCalculator<Scalar> source) {
+    this->swap(source);
+    return *this;
+  }
+
 }; // class PEigenCalculator
+
 
 
 

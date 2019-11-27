@@ -7,7 +7,7 @@
 superpose3d_cpp
 ===========
 
-## WARNING: THIS CODE IS NOT WORKING YET (-andrew 2019-11-22)
+## WARNING: THIS CODE IS NOT WORKING YET (-andrew 2019-11-27)
 
 **superpose3d_cpp** is a header-only C++ library containing a defninition
 of a class whose single public member function, *Superpose()*,
