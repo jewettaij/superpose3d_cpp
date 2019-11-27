@@ -31,12 +31,10 @@ namespace superpose3d_lammps {
 
 /// @brief
 /// Allocate a 2-dimensional table row-major order
-
 template<typename Entry, typename Integer>
-static inline void
-Alloc2D(Integer const size[2], //!< size of the array in x,y directions
-        Entry **paX,           //!< pointer to 1-D contiguous-memory array
-        Entry ***paaX)         //!< pointer to 2-D multidimensional array
+void Alloc2D(Integer const size[2], //!< size of the array in x,y directions
+             Entry **paX,           //!< pointer to 1-D contiguous-memory array
+             Entry ***paaX)         //!< pointer to 2-D multidimensional array
 {
   assert(paX && paaX);
 
@@ -51,16 +49,14 @@ Alloc2D(Integer const size[2], //!< size of the array in x,y directions
 }
 
 
-
 /// @brief
 /// Slightly different version of Alloc2D()
 /// In this version, the the size of the array specified by 2 integer arguments.
 template<typename Entry>
-static inline void
-Alloc2D(size_t M,              //!< size of the array (outer)
-        size_t N,              //!< size of the array (inner)
-        Entry **paX,           //!< pointer to 1-D contiguous-memory array
-        Entry ***paaX)         //!< pointer to 2-D multidimensional array
+void Alloc2D(size_t M,              //!< size of the array (outer)
+             size_t N,              //!< size of the array (inner)
+             Entry **paX,           //!< pointer to 1-D contiguous-memory array
+             Entry ***paaX)         //!< pointer to 2-D multidimensional array
 {
   size_t size[2];
   size[0] = M;
@@ -73,11 +69,9 @@ Alloc2D(size_t M,              //!< size of the array (outer)
 /// This function is the corresponding way to dellocate arrays
 /// that were created using Alloc2D()
 
-template<typename Entry, typename Integer>
-static inline void
-Dealloc2D(Integer const size[2], //!< size of the array in x,y directions
-          Entry **paX,          //!< pointer to 1-D contiguous-memory array
-          Entry ***paaX)        //!< pointer to 2-D multidimensional array
+template<typename Entry>
+void Dealloc2D(Entry **paX,          //!< pointer to 1-D contiguous-memory array
+               Entry ***paaX)        //!< pointer to 2-D multidimensional array
 {
   if (paaX && *paaX) {
     delete [] (*paaX);
@@ -90,24 +84,6 @@ Dealloc2D(Integer const size[2], //!< size of the array in x,y directions
 }
 
 
-/// @brief
-/// Slightly different version of Dealloc2D()
-/// In this version, the the size of the array specified by 2 integer arguments.
-template<typename Entry>
-static inline void
-Dealloc2D(size_t M,           //!< size of the array (outer)
-          size_t N,           //!< size of the array (inner)
-          Entry **paX,        //!< pointer to 1-D contiguous-memory array
-          Entry ***paaX)      //!< pointer to 2-D multidimensional array
-{
-  size_t size[2];
-  size[0] = M;
-  size[1] = N;
-  Dealloc2D(size, paX, paaX);
-}
-
-
-
 
 /// @brief PEigenCalculator caluclates the principal (largest)
 /// eigenvalue and corresponding eigenvector of an n x n matrix.
@@ -117,34 +93,43 @@ Dealloc2D(size_t M,           //!< size of the array (outer)
 template<typename Scalar>
 class PEigenCalculator
 {
-  Scalar **M;              // temporary array (needed by lambda_lanzcos)
+  Scalar **aaM;            // temporary array (stores the matrix)
+  Scalar *aM;              // temporary array (contiguous version of aaM[][])
   vector<Scalar> evec;     // temporary array (needed by lambda_lanzcos)
-  size_t n;                // the size of the matrix (assumed to be square)
+  size_t n;                // the size of the matrix
 
-  LambdaLanczos<Scalar> ll_engine;
-
-  auto matmul = [&](const vector<double>& in, vector<double>& out) {
-    for(int i = 0;i < n;i++) {
-      for(int j = 0;j < n;j++) {
-       out[i] += M[i][j]*in[j];
-      }
-    } 
-  };
-
-  auto init_vec = [&](vector<complex<double>>& vec) {
-    for(int i = 0;i < n;i++) {
-      vec[i] = complex<double>(0.0, 0.0);
-    }
-    vec[0] = complex<double>(0.0, 1.0);
-  };
+  LambdaLanczos<Scalar> ll_engine;  // this is the object that does the work
 
 public:
-  PEigenCalculator(size_t _n,    //!< size of the (square)matrix
+
+  PEigenCalculator(size_t _n,    //!< size of the matrix
                    bool find_max //!< find the largest eigenvalue?
-                   ):ll_engine(matmul, n, find_max), evec(_n, 0.0)
+                   ):ll_engine(), evec(_n, 0.0)
   {
-    ll_engine.init_vector = init_vec;
-  }
+    n = _n;
+    Alloc2D(n, n, &aM, &aaM);
+    ll_engine.SetSize(_n);
+
+    auto matmul = [&](const vector<double>& in, vector<double>& out) {
+      for(int i = 0;i < n;i++) {
+        for(int j = 0;j < n;j++) {
+          out[i] += aaM[i][j]*in[j];
+        }
+      } 
+    };
+
+    ll_engine.SetMul(matmul);
+
+    auto init_vec = [&](vector<double>& vec) {
+      for(int i = 0;i < n;i++) {
+        vec[i] = 0.0;
+      }
+      vec[0] = 1.0;
+    };
+
+    ll_engine.SetInitVec(init_vec);
+  } // PEigenCalculator()
+
 
   /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
   /// @return Return the principal eigenvalue of the matrix.
@@ -160,18 +145,24 @@ public:
     // (Because "matmul" refers to M.)
     for (int i = 0; i < n; i++)
       for (int j = 0; j < n; j++)
-        matrix[i][j] = M[i][j];
+        aaM[i][j] = matrix[i][j];
 
     size_t itern = ll_engine.run(eval, evec);
 
     if (eigenvector) {
-      // then return the eigenvector to the caller by copying the data
+      // If the caller requested the eigenvector as well, then
+      // return it to the caller by copying the data into eigenvector[].
       for (int i = 0; i < n; i++)
         eigenvector[i] = evec[i];
     }
  
     return eval;
   }
+
+  ~PEigenCalculator() {
+    Dealloc2D(&aM, &aaM);
+  }
+
 }; // class PEigenCalculator
 
 
