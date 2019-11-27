@@ -106,18 +106,22 @@ Dealloc2D(size_t M,           //!< size of the array (outer)
   Dealloc2D(size, paX, paaX);
 }
 
+
+
+
 /// @brief PEigenCalculator caluclates the principal (largest)
 /// eigenvalue and corresponding eigenvector of an n x n matrix.
 /// Right now it is just a wrapper enclosing "lambda-lanczos".
 /// (That might change of other developers want to swap it with 
-///  the "Eigen" librar or something else.)
+///  the "Eigen" library or something else.)
 template<typename Scalar>
 class PEigenCalculator
 {
-  Scalar **M;
-  size_t n;   // the size of the matrix (assumed to be square)
+  Scalar **M;              // temporary array (needed by lambda_lanzcos)
+  vector<Scalar> evec;     // temporary array (needed by lambda_lanzcos)
+  size_t n;                // the size of the matrix (assumed to be square)
 
-  LambdaLanczos ll_engine;
+  LambdaLanczos<Scalar> ll_engine;
 
   auto matmul = [&](const vector<double>& in, vector<double>& out) {
     for(int i = 0;i < n;i++) {
@@ -127,31 +131,49 @@ class PEigenCalculator
     } 
   };
 
+  auto init_vec = [&](vector<complex<double>>& vec) {
+    for(int i = 0;i < n;i++) {
+      vec[i] = complex<double>(0.0, 0.0);
+    }
+    vec[0] = complex<double>(0.0, 1.0);
+  };
 
 public:
-  PEigenCalcator(size_t _n,    //!< size of the (square)matrix
-                 bool find_max //!< find the largest eigenvalue?
-                 ):ll_engine(matmul, n, find_max)
-  {}
-
-  Scalar
-  PrincipalEigen(Scalar const* const *matrix,
-                 Scalar const *evect)
+  PEigenCalculator(size_t _n,    //!< size of the (square)matrix
+                   bool find_max //!< find the largest eigenvalue?
+                   ):ll_engine(matmul, n, find_max), evec(_n, 0.0)
   {
-    assert(evect);
+    ll_engine.init_vector = init_vec;
+  }
+
+  /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
+  /// @return Return the principal eigenvalue of the matrix.
+  ///         If you wan thant the eigenvector, pass a non-null "evec" argument.
+  Scalar
+  PrincipalEigen(Scalar const* const *matrix,  //!< the input patrix
+                 Scalar *eigenvector=nullptr  //!< optional: store the eigenvector here
+                 )
+  {
     Scalar eval;
 
     // We must copy the data from matrix into M.
     // (Because "matmul" refers to M.)
-    for (int i = 0; i < N; i++)
-      for (int j = 0; j < N; j++)
+    for (int i = 0; i < n; i++)
+      for (int j = 0; j < n; j++)
         matrix[i][j] = M[i][j];
 
-    size_t itern = ll_engine.run(eval, evect);
+    size_t itern = ll_engine.run(eval, evec);
 
+    if (eigenvector) {
+      // then return the eigenvector to the caller by copying the data
+      for (int i = 0; i < n; i++)
+        eigenvector[i] = evec[i];
+    }
+ 
     return eval;
   }
-}
+}; // class PEigenCalculator
+
 
 
 
@@ -193,7 +215,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   alloc_pPE = false;
   if (! pPE) {
     alloc_pPE = true;
-    pPE = new PEigenvalueCalculator(4, true);
+    pPE = new PEigenCalculator(4, true);
   }
 
   // Find the center of mass of each object:
