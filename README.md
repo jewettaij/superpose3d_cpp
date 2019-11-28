@@ -11,7 +11,7 @@ superpose3d_cpp
 
 **superpose3d_cpp** is a header-only C++ library containing a defninition
 of a class whose single public member function, *Superpose()*,
-takes two N x 3 multidimensional arrays
+takes two N x 3 multidimensional C arrays
 (*of the same length*, **N**) representing points
 from a point cloud (**X_i** and **x_i**) as arguments.
 Treating them as rigid objects,
@@ -35,6 +35,7 @@ then equal weights are used.  In that case:
 ```
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in data members named *T*, *R*, and *c*, respectively.
+
 
 ##  Example usage
 
