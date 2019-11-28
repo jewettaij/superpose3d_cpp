@@ -9,16 +9,17 @@ superpose3d_cpp
 
 ## WARNING: THIS CODE IS NOT WORKING YET (-andrew 2019-11-27)
 
-**superpose3d_cpp** is a header-only C++ library containing a defninition
+**superpose3d_cpp** is a header-only C++ library containing the definition
 of a class whose single public member function, *Superpose()*,
-takes two N x 3 multidimensional C arrays
-(*of the same length*, **N**) representing points
-from a point cloud (**X_i** and **x_i**) as arguments.
+takes two N×3 arrays representing coordinates of points
+from a point cloud (***X_i*** and ***x_i***) as arguments.
+(Both *X_i* and *x_i* should be implemented as C style pointer→pointer arrays.)
 Treating them as rigid objects,
 *Superpose3D::Superpose()* attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
+
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{\sum_{i=1}^n\,w_i\,|X_i-\sum_{j=1}^n(cR_{ij}x_j+T_i)|^2}{\sum_{i=1}^nw_i}\right)^{\frac{1}{2}}"/>
 
 If *w<sub>i</sub>* are omitted (ie. if *w<sub>i</sub> = nullptr*),
@@ -41,27 +42,29 @@ scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 
 ```
 #include "superpose3d.hpp"
-using namespace superpose3d_lammps;
+using namespace superpose3d;
 
-int main(int argc, char **argv) {
+// ...
 
-  double **X;   // (note: use "double **X" not "double (*X)[3]")
-  double **x;
-  double **w;
+double **X;   // (note: use "double **X" not "double (*X)[3]")
+double **x;
+double **w;
 
-  // Allocate space for X and x, and load their coordinates (omitted)
+// Allocate space for X and x, and load their coordinates (omitted)
+// ...
 
-  Superpose3D superposer(N);
+Superpose3D superposer(N);
+// (N is the number of points in either point cloud.)
 
-  // Calculate the optimal supperposition between the two point clouds (X and x)
+// Calculate the optimal supperposition between the two point clouds (X and x)
 
-  double rmsd =
-    superposer.Superpose(X, x);
+double rmsd =
+  superposer.Superpose(X, x);
 
-  // Note: The optimal rotation, translation, and scale factor will be stored in
-  //       superposer.R, superposer.T, and superposer.c, respectively.
-}
+// Note: The optimal rotation, translation, and scale factor will be stored in
+//       superposer.R, superposer.T, and superposer.c, respectively.
 ```
+Each point in the point cloud will be given equal weights when calculating RMSD.
 If you want to specify the weights (*w<sub>i</sub>* in the formula above),
 then use:
 ```
@@ -72,9 +75,12 @@ R. Diamond, (1988)
 "A Note on the Rotational Superposition Problem",
  Acta Cryst. A44, pp. 211-216.
 
-This version has been augmented slightly to support scale transformations.  (I.E. multiplication by scalars.  This can be useful for the registration of two different annotated volumetric 3-D images of the same object taken at different magnifications.)
+This version has been augmented slightly to support scale transformations.
+(I.E. multiplication by scalars.  This can be useful for the registration
+of two different annotated volumetric 3-D images of the same object taken
+at different magnifications.)
 
-By default scale transformations are disabled.  (By default $c=1$.)
+By default scale transformations are disabled.  (By default *c=1*.)
 If you want to allow scale transformations, then use:
 ```
 superposer.Superpose(X, x, w, true);
