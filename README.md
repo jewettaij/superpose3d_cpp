@@ -19,20 +19,20 @@ Treating them as rigid objects,
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
-```
-   RMSD = sqrt((Σ_i  w_i * |X_i - Σ_j(c*R_ij*x_j + T_i))|^2) / (Σ_j w_j))
-```
-If *w_i* are omitted (ie. if *w_i = nullptr*),
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{\sum_{i=1}^n w_i|X_i-\sum_{j=1}^n(cR_{ij}x_j+T_i)|^2}{\sum_{i=1}^nw_i}\right)^{\frac{1}{2}}"/>
+
+If *w<sub>i</sub>* are omitted (ie. if *w<sub>i</sub> = nullptr*),
 then equal weights are used.  In that case:
-```
-   RMSD = sqrt(( Σ_i |X_i - Σ_j(c*R_ij*x_j + T_i) )|^2 ) / N)
-```
+
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{1}{n}\sum_{i=1}^n |X_i-\sum_{j=1}^n (cR_{ij}x_j+T_i)|^2\right)^{\frac{1}{2}}"/>
+
 ...where:
 ```
    T = a translation vector (a 1-D numpy array containing x,y,z displacements),
    R = a rotation matrix    (a 3x3 numpy array whose determinant = 1),
    c = a scale factor       (a number)
 ```
+
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 
