@@ -11,6 +11,12 @@ using lambda_lanczos::LambdaLanczos;
 namespace superpose3d_lammps {
 
 
+/// @brief PEigenCalculator caluclates the principal (largest)
+/// eigenvalue and corresponding eigenvector of an n x n matrix.
+/// Right now it is just a wrapper enclosing "lambda-lanczos".
+/// (That might change of other developers want to swap it with 
+///  the "Eigen" library or something else.)
+
 template<typename Scalar>
 class PEigenCalculator {
   size_t n;                  // the size of the matrix
@@ -33,10 +39,10 @@ public:
   
   /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
   /// @return Return the principal eigenvalue of the matrix.
-  ///         If you wan thant the eigenvector, pass a non-null "evec" argument.
+  ///         If you want the eigenvector, pass a non-null "evect" argument.
   Scalar
   PrincipalEigen(Scalar const* const *matrix,  //!< the input patrix
-                 Scalar *eigenvector=nullptr   //!< optional: store eigenvector
+                 Scalar *evect=nullptr   //!< optional: store eigenvector
                  );
 
 }; // class PEigenCalculator

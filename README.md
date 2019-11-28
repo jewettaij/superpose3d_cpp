@@ -19,12 +19,12 @@ Treating them as rigid objects,
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{\sum_{i=1}^n w_i|X_i-\sum_{j=1}^n(cR_{ij}x_j+T_i)|^2}{\sum_{i=1}^nw_i}\right)^{\frac{1}{2}}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{\sum_{i=1}^n\,w_i\,|X_i-\sum_{j=1}^n(cR_{ij}x_j+T_i)|^2}{\sum_{i=1}^nw_i}\right)^{\frac{1}{2}}"/>
 
 If *w<sub>i</sub>* are omitted (ie. if *w<sub>i</sub> = nullptr*),
 then equal weights are used.  In that case:
 
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{1}{n}\sum_{i=1}^n |X_i-\sum_{j=1}^n (cR_{ij}x_j+T_i)|^2\right)^{\frac{1}{2}}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{1}{n}\,\sum_{i=1}^n\,|X_i-\sum_{j=1}^n (cR_{ij}x_j+T_i)|^2\right)^{\frac{1}{2}}"/>
 
 ...where:
 ```
@@ -62,7 +62,8 @@ int main(int argc, char **argv) {
   //       superposer.R, superposer.T, and superposer.c, respectively.
 }
 ```
-If you want to specify the weights (*w_i* in the formula above), then use:
+If you want to specify the weights (*w<sub>i</sub>* in the formula above),
+then use:
 ```
 superposer.Superpose(X, x, w);
 ```
