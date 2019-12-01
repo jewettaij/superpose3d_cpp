@@ -23,9 +23,10 @@
 #define _SUPERPOSE3D_HPP
 
 #include "peigencalc.hpp"
+using namespace lambda_lanczos;
+
 
 namespace superpose3d_lammps {
-
 
 // Because I allocate 2-dimensional arrays frequently, I created a 
 // few functions that make this more convenient.
