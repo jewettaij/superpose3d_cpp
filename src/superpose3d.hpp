@@ -95,7 +95,7 @@ private:
   Scalar **aaXm_shifted; //preallocated space for mobile point cloud (Nx3 array)
   Scalar *aXf_shifted;   //contiguous memory allocated for aaXf_shifted
   Scalar *aXm_shifted;   //contiguous memory allocated for aaXm_shifted
-  Scalar _R[9];          //contiguous memory allocated for R
+  Scalar *_R;            //contiguous memory allocated for R
 
 public:
   // The next 3 data members store the rotation, translation and scale
@@ -196,14 +196,14 @@ void Alloc2D(Integer const size[2], //!< size of the array in x,y directions
 }
 
 template<typename Entry>
-void Alloc2D(size_t M,              //!< size of the array (outer)
-             size_t N,              //!< size of the array (inner)
+void Alloc2D(size_t nrows,          //!< size of the array (outer)
+             size_t ncolumns,       //!< size of the array (inner)
              Entry **paX,           //!< pointer to 1-D contiguous-memory array
              Entry ***paaX)         //!< pointer to 2-D multidimensional array
 {
   size_t size[2];
-  size[0] = M;
-  size[1] = N;
+  size[0] = ncolumns;
+  size[1] = nrows;
   Alloc2D(size, paX, paaX);
 }
 
@@ -323,14 +323,13 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     // Optional: For numerical stability, we might as well rescale the
     // coordinates initially to make sure they have the same approximate
     // scale before we attempt to superimpose them.
-    // This is only necessary if one object is much bigger than the other
-    // (ie. by several orders of magnitude).
+    // This is probably only useful if one object is much bigger than the other.
     // Note: This is NOT the optimal scale factor.
     //       (That must be determined later.)
     for (size_t n=0; n < N; n++) {
       for (int d=0; d < 3; d++) {
-        Rgf += aWeights[n]*(SQR(aaXf[n][d]));
-        Rgm += aWeights[n]*(SQR(aaXm[n][d]));
+        Rgf += aWeights[n] * SQR(aaXf[n][d]);
+        Rgm += aWeights[n] * SQR(aaXm[n][d]);
       }
     }
     Rgf = sqrt(Rgf / sum_weights);
@@ -374,7 +373,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   // Calculate "P" (equation 22)
   Scalar _P[4*4]; // contiguous 1D array for storing contents of P
   Scalar *P[4];      // 2D array (in a format compatible with matrix solvers)
-  for (int i=0; i < 3; i++)
+  for (int i=0; i < 4; i++)
     P[i] = &(_P[4*i]);
 
   for (int i=0; i < 3; i++)
@@ -505,19 +504,18 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
 
 template<typename Scalar>
 void Superpose3D<Scalar>::Init() {
+  _R = nullptr;
+  R = nullptr;
   aaXf_shifted = nullptr;
   aaXm_shifted = nullptr;
   aXf_shifted = nullptr;
   aXm_shifted = nullptr;
-  //initialize the R
-  R[0] = &(_R[0]);
-  R[1] = &(_R[3]);
-  R[2] = &(_R[6]);
 }
 
 template<typename Scalar>
 void Superpose3D<Scalar>::Alloc(size_t N) {
   this->N = N;
+  Alloc2D(3, 3, &_R, &R);
   Alloc2D(N, 3, &aXf_shifted, &aaXf_shifted);
   Alloc2D(N, 3, &aXm_shifted, &aaXm_shifted);
   assert(aXf_shifted && aXm_shifted);
@@ -525,6 +523,8 @@ void Superpose3D<Scalar>::Alloc(size_t N) {
 
 template<typename Scalar>
 void Superpose3D<Scalar>::Dealloc() {
+  if (R)
+    Dealloc2D(&_R, &R);
   if (aaXf_shifted) {
     assert(aXf_shifted && aaXm_shifted && aXm_shifted);
     Dealloc2D(&aXf_shifted, &aaXf_shifted);
