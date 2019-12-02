@@ -4,15 +4,14 @@
 #include <vector>
 using std::vector;
 
+
 #include "lambda_lanczos/lambda_lanczos.hpp"
-//using lambda_lanczos::LambdaLanczos;
-
-
 namespace lambda_lanczos {
 
 /// @brief PEigenCalculator is a class containing only one useful member
 /// function PrincipalEigen().  This function calculates the principal (largest
 /// or smallest) eigenvalue and corresponding eigenvector of an n x n matrix.
+/// It is not intended for matrix diagonalization (finding all eigenvectors).
 
 template<typename Scalar>
 class PEigenCalculator
@@ -21,11 +20,13 @@ class PEigenCalculator
   vector<Scalar> evec; // preallocated vector (lambda_lanzcos does not use ptrs)
 
 public:
-
-  PEigenCalculator(int matrix_size):evec(matrix_size) //!< must specify matrix size in advance
-  {
+  void SetSize(int matrix_size) {
     n = matrix_size;
-    assert(n > 0);
+    evec.resize(n);
+  }
+
+  PEigenCalculator(int matrix_size=0):evec(matrix_size) {
+    SetSize(matrix_size);
   }
 
   /// @brief  Calculate the principal eigenvalue and eigenvector of a matrix.
@@ -39,12 +40,16 @@ public:
 }; // class PEigenCalculator
 
 
+
+// -------- IMPLEMENTATION --------
+
 template<typename Scalar>
 Scalar PEigenCalculator<Scalar>::
   PrincipalEigen(Scalar const* const *matrix,
                  Scalar *eigenvector,
                  bool find_max)
 {
+  assert(n > 0);
   auto matmul = [&](const vector<double>& in, vector<double>& out) {
     for(int i = 0; i < n; i++) {
       for(int j = 0; j < n; j++) {

@@ -1,6 +1,12 @@
-#include "superpose3d.hpp"
+#include <iostream>
+#include <cmath>
+using namespace std;
 
-void main(int argc, char **argv) {
+#include "superpose3d.hpp"
+using namespace superpose3d_lammps;
+
+
+int main(int argc, char **argv) {
   const int N = 4;
 
   // Allocate the arrays for the coordinates for this quick and dirty example.
@@ -14,12 +20,12 @@ void main(int argc, char **argv) {
 
   // Allocate space for X and x, and load the coordinates (omitted)
 
-  Superpose3D s(N);
-  s.Superpose(X, x);
+  Superpose3D<double> s(N);
+  double rmsd = s.Superpose(X, x);
 
   // Print the optimal rotation and translations
 
-  cout << "Optimal superposition rmsd = " << s.rmsd << "\n";
+  cout << "Optimal superposition rmsd = " << rmsd << "\n";
   cout << "optimal translation, Ti =\n"<<s.T[0]<<" "<<s.T[1]<<" "<<s.T[2]<<"\n";
   cout << "Optimal Rotation, Rij = \n";
   for (int iy = 0; iy < 3; iy++) {
@@ -30,7 +36,7 @@ void main(int argc, char **argv) {
 
   // Since one point cloud is just a rotate version of the other, we expect
   // that the RMSD between them should be 0.  Insure that this is so.
-  assert(abs(s.rmsd) < 1.0e-6);
+  assert(std::abs(rmsd) < 1.0e-6);
 
   // Now create some versions of "X" that have been modified in some way
   // and try again:
@@ -41,7 +47,7 @@ void main(int argc, char **argv) {
   //double *Xshifted[N]={_Xshifted[0], _Xshifted[1], _Xshifted[2],_Xshifted[3]};
   double *Xscshift[N]= {_Xscshift[0], _Xscshift[1], _Xscshift[2], _Xscshift[3]};
   for (int i = 0; i < N; i++) {
-    for (int d = 0; d < 3; d++ {
+    for (int d = 0; d < 3; d++) {
       //Xscaled[i][d]  = 2.0 * X[i][d];  //coords are scaled
       // Xshifted[i][d] = X[i][d];
       //if (d==0) Xshifted += 100.0;     //coords are shifted in the x direction
@@ -51,10 +57,10 @@ void main(int argc, char **argv) {
   }
 
   // Now try superposition again using these new coordinates
-  result = s.Superpose(X, Xscshift, nullptr, true);
+  rmsd = s.Superpose(X, Xscshift, nullptr, true);
   
-  cout << "Optimal Scale factor, C = " << s.C << "\n";
-  cout << "Optimal superposition rmsd = " << s.rmsd << "\n";
+  cout << "Optimal Scale factor, C = " << s.c << "\n";
+  cout << "Optimal superposition rmsd = " << rmsd << "\n";
   cout << "optimal translation, Ti =\n"<<s.T[0]<<" "<<s.T[1]<<" "<<s.T[2]<<"\n";
   cout << "Optimal Rotation, Rij = \n";
   for (int iy = 0; iy < 3; iy++) {
@@ -66,9 +72,9 @@ void main(int argc, char **argv) {
   // Now apply this transformation to the new coordinates
   // and recalculate the RMSD manually (by comparing coordinate sets).
   // Check to see if the RMSD computed by two different methods agrees.
-  double **aaXprime;
-  double *aXprime;
-  Alloc2D(N, 3, &aXprime, &aaXprime);
+  double **Xprime;
+  double *_aXprime;
+  Alloc2D(N, 3, &_aXprime, &Xprime);
   for (size_t n = 0; n < N; n++) {
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++)
@@ -80,10 +86,10 @@ void main(int argc, char **argv) {
   // Now apply this transformation to the mobile point cloud. Save in "aaXprime"
   for (size_t n = 0; n < N; n++) {
     for (int i = 0; i < 3; i++) {
-      aaXprime[n][i] = 0.0;
+      Xprime[n][i] = 0.0;
       for (int j = 0; j < 3; j++)
-        aaXprime[n][i] += s.c * s.R[i][j] * xscshift[j];
-      aaXprime[n][i] += s.T[i];
+        Xprime[n][i] += s.c * s.R[i][j] * Xscshift[n][j];
+      Xprime[n][i] += s.T[i];
     }
   }
 
@@ -92,14 +98,15 @@ void main(int argc, char **argv) {
   double RMSD = 0.0;
 
   for (size_t n = 0; n < N; n++)
-    RMSD += ((aaXf[i][0] - aaXprime[i][0])**2 +
-             (aaXf[i][1] - aaXprime[i][1])**2 +
-             (aaXf[i][2] - aaXprime[i][2])**2);
+    RMSD += (SQR(X[n][0] - Xprime[n][0]) +
+             SQR(X[n][1] - Xprime[n][1]) +
+             SQR(X[n][2] - Xprime[n][2]));
 
   RMSD = sqrt(RMSD / N);
 
-  assert(abs(RMSD - result[0]) < 1.0e-6);
+  assert(abs(RMSD - rmsd) < 1.0e-6);
 
-  Dealloc2D(&aXprime, &aaXprime);
+  Dealloc2D(&_aXprime, &Xprime);
 
+  return EXIT_SUCCESS;
 } // main()
