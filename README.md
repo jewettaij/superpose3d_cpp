@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/jewettaij/superpose3d_cpp.svg?branch=master)](https://travis-ci.org/jewettaij/superpose3d_cpp.svg?branch=master)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
-[![GitHub All Releases](https://img.shields.io/github/downloads/jewettaij/superpose3d_cpp/total)]()
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jewettaij/superpose3d_cpp)]()
 
 

@@ -372,8 +372,8 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   V[2] = M[0][1] - M[1][0];
 
   // Calculate "P" (equation 22)
-  Scalar *_P[4*4]; // contiguous 1D array for storing contents of P
-  Scalar **P;      // 2D array (in a format compatible with matrix solvers)
+  Scalar _P[4*4]; // contiguous 1D array for storing contents of P
+  Scalar *P[4];      // 2D array (in a format compatible with matrix solvers)
   for (int i=0; i < 3; i++)
     P[i] = &(_P[4*i]);
 
@@ -493,9 +493,9 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
 
   // Deallocate the temporary arrays we created earlier (if necessary).
   if (_aXf)
-    Dealloc2D(N, 3, &_aXf, &aaXf);
+    Dealloc2D(&_aXf, &aaXf);
   if (_aXm)
-    Dealloc2D(N, 3, &_aXm, &aaXm);
+    Dealloc2D(&_aXm, &aaXm);
   if (alloc_aWeights)
     delete [] aWeights;
   if (alloc_pPE)
@@ -527,8 +527,8 @@ template<typename Scalar>
 void Superpose3D<Scalar>::Dealloc() {
   if (aaXf_shifted) {
     assert(aXf_shifted && aaXm_shifted && aXm_shifted);
-    Dealloc2D(aXf_shifted, aaXf_shifted);
-    Dealloc2D(aXm_shifted, aaXm_shifted);
+    Dealloc2D(&aXf_shifted, &aaXf_shifted);
+    Dealloc2D(&aXm_shifted, &aaXm_shifted);
   }
 }
 
