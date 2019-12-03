@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   // Allocate the arrays for the coordinates for this quick and dirty example.
   // (To make it easier to initialize them, use fixed-size arrays.)
   double _X[N][3] = {{0,0,0},{0,0,1},{0,1,1},{1,1,1}};
-  double _x[N][3] = {{3,0,0},{3,1,0},{3,1,-1},{4,1,-1}};
+  double _x[N][3] = {{0,0,0},{0,1,0},{0,1,-1},{1,1,-1}};
   // Must convert these 2D arrays into to pointer-to-pointer-to-double
   double *X[N] = {_X[0], _X[1], _X[2], _X[3]};
   double *x[N] = {_x[0], _x[1], _x[2], _x[3]};
@@ -20,8 +20,10 @@ int main(int argc, char **argv) {
 
   // Allocate space for X and x, and load the coordinates (omitted)
 
+  double rmsd;
   Superpose3D<double> s(N);
-  double rmsd = s.Superpose(X, x);
+
+  rmsd = s.Superpose(X, x);
 
   // Print the optimal rotation and translations
 
@@ -40,18 +42,11 @@ int main(int argc, char **argv) {
 
   // Now create some versions of "X" that have been modified in some way
   // and try again:
-  //double _Xscaled[N][3]; // allocate space
-  //double _Xshifted[N][3];
   double _Xscshift[N][3];
-  //double *Xscaled[N]= {_Xcaled[0], _Xscaled[1], _Xscaled[2], _Xscaled[3]};
-  //double *Xshifted[N]={_Xshifted[0], _Xshifted[1], _Xshifted[2],_Xshifted[3]};
   double *Xscshift[N]= {_Xscshift[0], _Xscshift[1], _Xscshift[2], _Xscshift[3]};
   for (int i = 0; i < N; i++) {
     for (int d = 0; d < 3; d++) {
-      //Xscaled[i][d]  = 2.0 * X[i][d];  //coords are scaled
-      // Xshifted[i][d] = X[i][d];
-      //if (d==0) Xshifted += 100.0;     //coords are shifted in the x direction
-      Xscshift[i][d] = 2.0 * X[i][d];
+      Xscshift[i][d] = 2.0 * x[i][d];
       if (d==1) Xscshift[i][d] += 200; //coords are scaled and shifted along y
     }
   }
@@ -75,13 +70,6 @@ int main(int argc, char **argv) {
   double **Xprime;
   double *_aXprime;
   Alloc2D(N, 3, &_aXprime, &Xprime);
-  for (size_t n = 0; n < N; n++) {
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++)
-        cout << s.R[i][j] << " ";
-      cout << "\n";
-    }
-  }
 
   // Now apply this transformation to the mobile point cloud. Save in "aaXprime"
   for (size_t n = 0; n < N; n++) {

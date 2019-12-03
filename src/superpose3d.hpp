@@ -442,7 +442,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
         WaxaiXai += weight * aaXm[a][i] * aaXf[a][i];
       }
     }
-    Scalar c = (WaxaiXai + pPp) / Waxaixai;
+    c = (WaxaiXai + pPp) / Waxaixai;
 
     // Recall that we previously divided the two sets of coordinates by Rgm
     // and Rgf respectively.(I thought it might improve numerical stability)
