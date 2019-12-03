@@ -257,12 +257,6 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   assert(aaRotate && aTranslate);
   assert(aaXf_orig && aaXm_orig);
 
-  bool alloc_aWeights = false;
-  if (aWeights == nullptr) {
-    aWeights = new Scalar[N];
-    alloc_aWeights = true;
-  }
-
   bool alloc_pPE = false;
   if (! pPE) {
     alloc_pPE = true;
@@ -275,9 +269,12 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   Scalar sum_weights = 0.0;
   for (size_t n=0; n < N; n++) {
     for (int d=0; d < 3; d++) {
-      aCenter_f[d] += aaXf_orig[n][d]*aWeights[n];
-      aCenter_m[d] += aaXm_orig[n][d]*aWeights[n];
-      sum_weights += aWeights[n];
+      Scalar weight = 1.0;
+      if (aWeights)
+        weight = aWeights[n];
+      aCenter_f[d] += aaXf_orig[n][d]*weight;
+      aCenter_m[d] += aaXm_orig[n][d]*weight;
+      sum_weights += weight;
     }
   }
   for (int d=0; d < 3; d++) {
@@ -328,8 +325,11 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     //       (That must be determined later.)
     for (size_t n=0; n < N; n++) {
       for (int d=0; d < 3; d++) {
-        Rgf += aWeights[n] * SQR(aaXf[n][d]);
-        Rgm += aWeights[n] * SQR(aaXm[n][d]);
+        Scalar weight = 1.0;
+        if (aWeights)
+          weight = aWeights[n];
+        Rgf += weight * SQR(aaXf[n][d]);
+        Rgm += weight * SQR(aaXm[n][d]);
       }
     }
     Rgf = sqrt(Rgf / sum_weights);
@@ -345,11 +345,20 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
 
   // Calculate the "M" array from the Diamond paper (equation 16)
   Scalar M[3][3];
+  for (int i=0; i < 3; i++)
+    for (int j=0; j < 3; j++)
+      M[i][j] = 0.0;
   
-  for (size_t n=0; n < N; n++)
-    for (int i=0; i < 3; i++)
-      for (int j=0; j < 3; j++)
-        M[i][j] += aWeights[n] * aaXm[n][i] * aaXf[n][j];
+  for (size_t n=0; n < N; n++) {
+    for (int i=0; i < 3; i++) {
+      for (int j=0; j < 3; j++) {
+        Scalar weight = 1.0;
+        if (aWeights)
+          weight = aWeights[n];
+        M[i][j] += weight * aaXm[n][i] * aaXf[n][j];
+      }
+    }
+  }
 
   // Calculate Q (equation 17)
   Scalar traceM = 0.0;
@@ -426,8 +435,11 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     Scalar WaxaiXai = 0.0;
     for (size_t a=0; a < N; a++) {
       for (int i=0; i < 3; i++) {
-        Waxaixai += aWeights[a] * aaXm[a][i] * aaXm[a][i];
-        WaxaiXai += aWeights[a] * aaXm[a][i] * aaXf[a][i];
+        Scalar weight = 1.0;
+        if (aWeights)
+          weight = aWeights[a];
+        Waxaixai += weight * aaXm[a][i] * aaXm[a][i];
+        WaxaiXai += weight * aaXm[a][i] * aaXf[a][i];
       }
     }
     Scalar c = (WaxaiXai + pPp) / Waxaixai;
@@ -451,10 +463,15 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   // Finally compute the RMSD between the two coordinate sets:
   // First compute E0 from equation 24 of the paper
   Scalar E0 = 0.0;
-  for (size_t n=0; n < N; n++)
-    for (int d=0; d < 3; d++)
+  for (size_t n=0; n < N; n++) {
+    for (int d=0; d < 3; d++) {
+      Scalar weight = 1.0;
+      if (aWeights)
+        weight = aWeights[n];
       // (remember to include the scale factor "c" that we inserted)
-      E0 += aWeights[n] * (SQR(aaXf[n][d] - c*aaXm[n][d]));
+      E0 += weight * (SQR(aaXf[n][d] - c*aaXm[n][d]));
+    }
+  }
   Scalar sum_sqr_dist = E0 - 2.0*pPp;
   if (sum_sqr_dist < 0.0)
     sum_sqr_dist = 0.0;
@@ -495,8 +512,6 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     Dealloc2D(&_aXf, &aaXf);
   if (_aXm)
     Dealloc2D(&_aXm, &aaXm);
-  if (alloc_aWeights)
-    delete [] aWeights;
   if (alloc_pPE)
     delete pPE;
   return rmsd;
