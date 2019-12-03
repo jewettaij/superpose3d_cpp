@@ -8,6 +8,9 @@ superpose3d_cpp
 
 ## WARNING: THIS CODE IS IN THE ALPHA STAGE OF DEVELOPMENT (-andrew 2019-12-03)
 
+Note: There is a python version of this repository
+[here](https://github.com/jewettaij/superpose3d).
+
 **superpose3d_cpp** is a header-only C++ library containing the definition
 of a class whose single public member function, *Superpose()*,
 takes two N×3 arrays representing coordinates of points
@@ -39,7 +42,7 @@ scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 
 ##  Example usage
 
-```
+```cpp
 #include "superpose3d.hpp"
 using namespace superpose3d;
 
