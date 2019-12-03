@@ -268,14 +268,14 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   Scalar aCenter_m[3] = {0.0, 0.0, 0.0};
   Scalar sum_weights = 0.0;
   for (size_t n=0; n < N; n++) {
+    Scalar weight = 1.0;
+    if (aWeights)
+      weight = aWeights[n];
     for (int d=0; d < 3; d++) {
-      Scalar weight = 1.0;
-      if (aWeights)
-        weight = aWeights[n];
       aCenter_f[d] += aaXf_orig[n][d]*weight;
       aCenter_m[d] += aaXm_orig[n][d]*weight;
-      sum_weights += weight;
     }
+    sum_weights += weight;
   }
   for (int d=0; d < 3; d++) {
     aCenter_f[d] /= sum_weights;
@@ -324,10 +324,10 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     // Note: This is NOT the optimal scale factor.
     //       (That must be determined later.)
     for (size_t n=0; n < N; n++) {
+      Scalar weight = 1.0;
+      if (aWeights)
+        weight = aWeights[n];
       for (int d=0; d < 3; d++) {
-        Scalar weight = 1.0;
-        if (aWeights)
-          weight = aWeights[n];
         Rgf += weight * SQR(aaXf[n][d]);
         Rgm += weight * SQR(aaXm[n][d]);
       }
@@ -348,13 +348,13 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   for (int i=0; i < 3; i++)
     for (int j=0; j < 3; j++)
       M[i][j] = 0.0;
-  
+
   for (size_t n=0; n < N; n++) {
+    Scalar weight = 1.0;
+    if (aWeights)
+      weight = aWeights[n];
     for (int i=0; i < 3; i++) {
       for (int j=0; j < 3; j++) {
-        Scalar weight = 1.0;
-        if (aWeights)
-          weight = aWeights[n];
         M[i][j] += weight * aaXm[n][i] * aaXf[n][j];
       }
     }
@@ -434,10 +434,10 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     Scalar Waxaixai = 0.0;
     Scalar WaxaiXai = 0.0;
     for (size_t a=0; a < N; a++) {
+      Scalar weight = 1.0;
+      if (aWeights)
+        weight = aWeights[a];
       for (int i=0; i < 3; i++) {
-        Scalar weight = 1.0;
-        if (aWeights)
-          weight = aWeights[a];
         Waxaixai += weight * aaXm[a][i] * aaXm[a][i];
         WaxaiXai += weight * aaXm[a][i] * aaXf[a][i];
       }
@@ -464,13 +464,12 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   // First compute E0 from equation 24 of the paper
   Scalar E0 = 0.0;
   for (size_t n=0; n < N; n++) {
-    for (int d=0; d < 3; d++) {
-      Scalar weight = 1.0;
-      if (aWeights)
-        weight = aWeights[n];
+    Scalar weight = 1.0;
+    if (aWeights)
+      weight = aWeights[n];
+    for (int d=0; d < 3; d++)
       // (remember to include the scale factor "c" that we inserted)
       E0 += weight * (SQR(aaXf[n][d] - c*aaXm[n][d]));
-    }
   }
   Scalar sum_sqr_dist = E0 - 2.0*pPp;
   if (sum_sqr_dist < 0.0)

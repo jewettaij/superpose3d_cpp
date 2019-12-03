@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   // Allocate the arrays for the coordinates for this quick and dirty example.
   // (To make it easier to initialize them, use fixed-size arrays.)
   double _X[N][3] = {{0,0,0},{0,0,1},{0,1,1},{1,1,1}};
-  double _x[N][3] = {{0,0,0},{0,1,0},{0,1,-1},{1,1,-1}};
+  double _x[N][3] = {{3,0,0},{3,1,0},{3,1,-1},{4,1,-1}};
   // Must convert these 2D arrays into to pointer-to-pointer-to-double
   double *X[N] = {_X[0], _X[1], _X[2], _X[3]};
   double *x[N] = {_x[0], _x[1], _x[2], _x[3]};
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     cout << "\n";
   }
 
-  // Since one point cloud is just a rotate version of the other, we expect
+  // Since one point cloud is just a rotated version of the other, we expect
   // that the RMSD between them should be 0.  Insure that this is so.
   assert(std::abs(rmsd) < 1.0e-6);
 
