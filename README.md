@@ -102,7 +102,7 @@ git clone --recursive https://github.com/jewettaij/superpose3d_cpp ~/superpose3d
 
 The source code in the ".hpp" header files are unlikely to change,
 but *include paths* could change in the future.
-(See [below](#-Additional-Modifications-Needed).)
+(See [below](#Additional-Modifications-Needed).)
 
 ## Installation
 
@@ -120,10 +120,10 @@ directory to a location in your
 you may need to modify the include path
 (ie. your "-I" compiler arguments)
 and the #include statements in your header files
-([here](include/superpose.hpp) and
- [here](lambda-lanczos/include/lambda_lanczos))
+([here](./include/superpose3d.hpp) and
+ [here](./lambda-lanczos/include/lambda_lanczos))
 to delete "lambda_lanczos/" from these paths where it appears.
-I hope this will change in the future.
+I hope this will get cleaned up in the future.
 -Andrew 2019-12-03*
 
 

@@ -29,6 +29,11 @@ using namespace lambda_lanczos;
 namespace superpose3d_lammps {
 
 
+// ----------------------------------------------------------------
+// ---------- some utilities I need to declare beforehand ---------
+// ----------------------------------------------------------------
+
+
 // Because I allocate 2-dimensional arrays frequently, I created a 
 // few functions that make this more convenient.
 
@@ -59,26 +64,22 @@ template<typename Scalar>
 static inline Scalar SQR(Scalar x) {return x*x;}
 
 
-/// @brief
-/// _Superpose3D() is a stand-alone function.  It is invoked by 
-/// Superpose3D::Superpose(), but it does all the work.  You can use this
-/// function by itself without creating an instance of the "Superpose3D" class,
-/// however using Superpose3D::Superpose() is recommended.
-/// (I should probably just move all of this code into Superpose3D::Superpose())
-
+// This is a stand-alone function invoked by Superpose3D::Superpose()
+// but it does all the work.  This function was not intended for public use.
+// (See implementation below for a description of the variables.)
 template<typename Scalar>
 inline static Scalar
-_Superpose3D(size_t N,             //!< number of points in both point clouds
-             Scalar **aaRotate,    //!< store rotation here
-             Scalar *aTranslate,   //!< store translation here
-             Scalar const *const *aaXf_orig, //!< coords for the "frozen" object
-             Scalar const *const *aaXm_orig, //!< coords for the "mobile" object
-             Scalar const *aWeights=nullptr, //!< optional weights
-             Scalar *pC=nullptr, //!< rescale mobile object? if so store "c"here
-             PEigenCalculator<Scalar> *pPE=nullptr, //!< eigenvalue calculator
-             Scalar **aaXf=nullptr,//!<optional preallocated aaXf (Nx3) array
-             Scalar **aaXm=nullptr //!<optional preallocated aaXm (Nx3) array
-             );
+_Superpose3D(size_t N, Scalar **aaRotate, Scalar *aTranslate,
+             Scalar const *const *aaXf_o, Scalar const *const *aaXm_o,
+             Scalar const *aWeights=nullptr, Scalar *pC=nullptr,
+             PEigenCalculator<Scalar> *pPE=nullptr,
+             Scalar **aaXf_s=nullptr, Scalar **aaXm_s=nullptr);
+
+
+
+// -----------------------------------------------------------
+// ------------------------ INTERFACE ------------------------
+// -----------------------------------------------------------
 
 
 /// @brief  Superpose3d is a class with only one important member function
@@ -125,7 +126,11 @@ public:
   /// and attempts to superimpose them using rotations, translations, and 
   /// (optionally) rescale operations are applied to the coordinates in the
   /// "aaXm_orig" array in order to minimize the root-mean-squared-distance
-  /// (RMSD) between them.
+  /// (RMSD) between them, where RMSD is defined as:
+  ///    sqrt((Sum_i  w_i * |X_i - (Sum_jc*R_ij*x_j + T_i))|^2) / (Sum_j w_j))
+  /// The "X_i" and "x_i" are coordinates of the ith fixed and mobile point,
+  /// (represented by "aaXf" and "aaXm" below), and "w_i" are weights
+  /// (represented by "aWeights", which, if omitted, are assumed to be equal).
   /// This function implements a more general variant of the method from:
   /// R. Diamond, (1988)
   /// "A Note on the Rotational Superposition Problem", 
@@ -133,6 +138,8 @@ public:
   /// This version has been augmented slightly.  The version in the original 
   /// paper only considers rotation and translation and does not allow the 
   /// coordinates of either object to be rescaled (multiplication by a scalar).
+  /// You can enable the ability to rescale the coordinates by setting
+  /// "allow_rescale" to true.  (By default, this feature is disabled.)
   ///
   /// @returns
   /// The RMSD between the 2 pointclouds after optimal rotation, translation
@@ -144,7 +151,7 @@ public:
           Scalar const *const *aaXf,      //!< coords for the "frozen" object
           Scalar const *const *aaXm,      //!< coords for the "mobile" object
           Scalar const *aWeights=nullptr, //!< optional weights
-          bool allow_rescale=false        //!< rescale mobile object?
+          bool allow_rescale=false        //!< rescale mobile object? (c!=1?)
                    )
   {
     return
@@ -242,20 +249,19 @@ Superpose3D<Scalar>::~Superpose3D() {
 
 template<typename Scalar>
 static inline Scalar
-_Superpose3D(size_t N,             //!< number of points in both point clouds
-             Scalar **aaRotate,    //!< store rotation here
-             Scalar *aTranslate,   //!< store translation here
-             Scalar const *const *aaXf_orig, //!< coords for the "frozen" object
-             Scalar const *const *aaXm_orig, //!< coords for the "mobile" object
-             Scalar const *aWeights,         //!< optional weights
-             Scalar *pC,      //!< rescale mobile object? if so store "c"here
+_Superpose3D(size_t N,             // number of points in both point clouds
+             Scalar **aaRotate,    // store rotation here
+             Scalar *aTranslate,   // store translation here
+             Scalar const *const *aaXf_o, // coords for the "frozen" object
+             Scalar const *const *aaXm_o, // coords for the "mobile" object
+             Scalar const *aWeights,         // optional weights
+             Scalar *pC,      // rescale mobile object? if so store "c"here
              PEigenCalculator<Scalar> *pPE, //!< eigenvalue calculator
-             Scalar **aaXf,   //!<optional preallocated aaXf (Nx3) array
-             Scalar **aaXm    //!<optional preallocated aaXm (Nx3) array
-             )
+             Scalar **aaXf_s,   // optional preallocated (Nx3) temporary array
+             Scalar **aaXm_s)   // optional preallocated (Nx3) temporary array
 {
   assert(aaRotate && aTranslate);
-  assert(aaXf_orig && aaXm_orig);
+  assert(aaXf_o && aaXm_o);
 
   bool alloc_pPE = false;
   if (! pPE) {
@@ -272,8 +278,8 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
     if (aWeights)
       weight = aWeights[n];
     for (int d=0; d < 3; d++) {
-      aCenter_f[d] += aaXf_orig[n][d]*weight;
-      aCenter_m[d] += aaXm_orig[n][d]*weight;
+      aCenter_f[d] += aaXf_o[n][d]*weight;
+      aCenter_m[d] += aaXm_o[n][d]*weight;
     }
     sum_weights += weight;
   }
@@ -284,37 +290,38 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
 
   //Subtract the centers-of-mass from the original coordinates for each object
 
-  // Create some temporary arrays we will need aaXf, aaXm
-  //aaXf[i][d] = dth coord of ith particle in "fixed" object
-  //aaXf[i][d] = dth coord of ith particle in "mobile" object
+  // Create some temporary arrays we will need aaXf_s, aaXm_s
+  //aaXf_s[i][d] = dth coord of ith particle in "fixed" object
+  //aaXm_s[i][d] = dth coord of ith particle in "mobile" object
 
   // Ugly details:  we might need to allocate space for these arrays
-  Scalar *_aXf = nullptr; //storage space for aaXf; aaXf[i][d] = aXf[3*i+d]
-  Scalar *_aXm = nullptr; //storage space for aaXm; aaXm[i][d] = aXm[3*i+d]
+  Scalar *aXf_s=nullptr; //storage space for aaXf_s; aaXf_s[i][d] = aXf_s[3*i+d]
+  Scalar *aXm_s=nullptr; //storage space for aaXm_s; aaXm_s[i][d] = aXm_s[3*i+d]
 
-  // decide whether to allocate the aaXf array
-  if (! aaXf) {
-    Alloc2D(N, 3, &_aXf, &aaXf);
-    assert(_aXf);
+  // decide whether to allocate the aaXf_s array
+  if (! aaXf_s) {
+    Alloc2D(N, 3, &aXf_s, &aaXf_s);
+    assert(aXf_s);
   }
-  assert(aaXf);
-  // decide whether to allocate the aaXm array
-  if (! aaXm) {
-    Alloc2D(N, 3, &_aXm, &aaXm);
-    assert(_aXm);
+  assert(aaXf_s);
+  // decide whether to allocate the aaXm_s array
+  if (! aaXm_s) {
+    Alloc2D(N, 3, &aXm_s, &aaXm_s);
+    assert(aXm_s);
   }
-  assert(aaXm);
+  assert(aaXm_s);
   for (size_t n=0; n < N; n++) {
     for (int d=0; d < 3; d++) {
-      aaXf[n][d] = aaXf_orig[n][d] - aCenter_f[d];
-      aaXm[n][d] = aaXm_orig[n][d] - aCenter_m[d];
+      // shift the coordinates so that the new center of mass is at the origin
+      aaXf_s[n][d] = aaXf_o[n][d] - aCenter_f[d];
+      aaXm_s[n][d] = aaXm_o[n][d] - aCenter_m[d];
     }
   }
 
   bool allow_rescale = pC != nullptr;
 
-  Scalar Rgf=0.0;// <--the RMS size of the particles in the frozen object aaXf
-  Scalar Rgm=0.0;// <--the RMS size of the particles in the mobile object aaXm
+  Scalar Rgf=0.0;// <--the RMS size of the particles in the frozen object aaXf_s
+  Scalar Rgm=0.0;// <--the RMS size of the particles in the mobile object aaXm_s
 
   if (allow_rescale) {
     // Optional: For numerical stability, we might as well rescale the
@@ -328,8 +335,8 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
       if (aWeights)
         weight = aWeights[n];
       for (int d=0; d < 3; d++) {
-        Rgf += weight * SQR(aaXf[n][d]);
-        Rgm += weight * SQR(aaXm[n][d]);
+        Rgf += weight * SQR(aaXf_s[n][d]);
+        Rgm += weight * SQR(aaXm_s[n][d]);
       }
     }
     Rgf = sqrt(Rgf / sum_weights);
@@ -337,8 +344,8 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
 
     for (size_t n=0; n < N; n++) {
       for (int d=0; d < 3; d++) {
-        aaXf[n][d] /= Rgf;
-        aaXm[n][d] /= Rgm;
+        aaXf_s[n][d] /= Rgf;
+        aaXm_s[n][d] /= Rgm;
       }
     }
   } //if (allow_rescale)
@@ -355,7 +362,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
       weight = aWeights[n];
     for (int i=0; i < 3; i++) {
       for (int j=0; j < 3; j++) {
-        M[i][j] += weight * aaXm[n][i] * aaXf[n][j];
+        M[i][j] += weight * aaXm_s[n][i] * aaXf_s[n][j];
       }
     }
   }
@@ -438,8 +445,8 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
       if (aWeights)
         weight = aWeights[a];
       for (int i=0; i < 3; i++) {
-        Waxaixai += weight * aaXm[a][i] * aaXm[a][i];
-        WaxaiXai += weight * aaXm[a][i] * aaXf[a][i];
+        Waxaixai += weight * aaXm_s[a][i] * aaXm_s[a][i];
+        WaxaiXai += weight * aaXm_s[a][i] * aaXf_s[a][i];
       }
     }
     c = (WaxaiXai + pPp) / Waxaixai;
@@ -452,8 +459,8 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
         // And, lastly, undo this before calculating E0 below
     for (size_t n=0; n < N; n++) {
       for (int d=0; d < 3; d++) {
-        aaXf[n][d] *= Rgf;
-        aaXm[n][d] *= Rgm;
+        aaXf_s[n][d] *= Rgf;
+        aaXm_s[n][d] *= Rgm;
       }
     }
     *pC = c;
@@ -469,7 +476,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
       weight = aWeights[n];
     for (int d=0; d < 3; d++)
       // (remember to include the scale factor "c" that we inserted)
-      E0 += weight * (SQR(aaXf[n][d] - c*aaXm[n][d]));
+      E0 += weight * (SQR(aaXf_s[n][d] - c*aaXm_s[n][d]));
   }
   Scalar sum_sqr_dist = E0 - 2.0*pPp;
   if (sum_sqr_dist < 0.0)
@@ -507,14 +514,15 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   //aTranslate = np.array(TcolumnVec.transpose())[0]
 
   // Deallocate the temporary arrays we created earlier (if necessary).
-  if (_aXf)
-    Dealloc2D(&_aXf, &aaXf);
-  if (_aXm)
-    Dealloc2D(&_aXm, &aaXm);
+  if (aXf_s)
+    Dealloc2D(&aXf_s, &aaXf_s);
+  if (aXm_s)
+    Dealloc2D(&aXm_s, &aaXm_s);
   if (alloc_pPE)
     delete pPE;
   return rmsd;
 }
+
 
 template<typename Scalar>
 void Superpose3D<Scalar>::Init() {
