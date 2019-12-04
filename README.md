@@ -46,9 +46,9 @@ using namespace superpose3d;
 
 // ...
 
-double **X;   // (note: use "double **X" not "double (*X)[3]")
-double **x;
-double **w;
+double **X;   // 1st point cloud (note: use "double **X" not "double (*X)[3]")
+double **x;   // 2nd point cloud (the mobile point cloud)
+double *w;    // optional weights used in calculation of RMSD
 
 // Allocate space for X and x, and load their coordinates (omitted)
 // ...
@@ -86,7 +86,7 @@ If you want to allow scale transformations, then use:
 superposer.Superpose(X, x, w, true);
 ```
 
-Note that if you enable scale transformations (i.e. if the fourth argument is *true*), you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
+Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
 
 
 ## Downloading
@@ -97,13 +97,6 @@ so you must use the **--recursive** argument when cloaning it.  For example:
 ```
 git clone --recursive https://github.com/jewettaij/superpose3d_cpp ~/superpose3d_cpp
 ```
-
-## Development Status: *Beta*
-
-The source code in the ".hpp" header files are unlikely to change,
-but *include paths* could change in the future.
-(See [below](#Additional-Modifications-Needed).)
-
 ## Installation
 
 This is a header-only library.
@@ -114,18 +107,25 @@ and all of the *hpp* files in the
 directory to a location in your
 [include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
 
-#### Additional Modifications Needed
+## *Additional Modifications Needed*
 
-*If you copy these files into the same directory,
-you may need to modify the include path
+*Currently, if you copy these files into the same directory,
+you will need to modify your include path
 (ie. your "-I" compiler arguments)
-and the #include statements in your header files
+and the *#include* statements in your header files
 ([here](./include/superpose3d.hpp) and
- [here](./lambda-lanczos/include/lambda_lanczos))
+ [here](https://github.com/mrcdr/lambda-lanczos/include)
 to delete "lambda_lanczos/" from these paths where it appears.
-I hope this will get cleaned up in the future.
--Andrew 2019-12-03*
+I will try to persuade the author of "lambda_lanczos" to remove
+explicit references to this subdirectory in his library code.
+-Andrew 2019-12-04*
 
+
+## Development Status: *Beta*
+
+The source code in the ".hpp" header files are unlikely to change,
+but *include paths* could change in the future.
+(See [above](#Additional-Modifications-Needed).)
 
 ## License
 
