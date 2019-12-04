@@ -6,8 +6,6 @@
 superpose3d_cpp
 ===========
 
-## WARNING: THIS CODE IS IN THE ALPHA STAGE OF DEVELOPMENT (-andrew 2019-12-03)
-
 Note: There is a python version of this repository
 [here](https://github.com/jewettaij/superpose3d).
 
@@ -22,12 +20,12 @@ them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
 
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{\sum_{i=1}^n\,w_i\,|X_i-\sum_{j=1}^n(cR_{ij}x_j+T_i)|^2}{\sum_{i=1}^nw_i}\right)^{\frac{1}{2}}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{i=1}^n\,w_i\,\left|X_i-\left(\sum_{j=1}^ncR_{ij}x_j+T_i\right)\right|^2\quad\middle/\quad\sum_{i=1}^nw_i}\right}"/>
 
 If *w<sub>i</sub>* are omitted (ie. if *w<sub>i</sub> = nullptr*),
 then equal weights are used.  In that case:
 
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\left(\frac{1}{n}\,\sum_{i=1}^n\,|X_i-\sum_{j=1}^n (cR_{ij}x_j+T_i)|^2\right)^{\frac{1}{2}}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{i=1}^n\,\,\left|X_i-\left(\sum_{j=1}^n cR_{ij}x_j+T_i\right)\right|^2}"/>
 
 ...where:
 ```
@@ -100,6 +98,12 @@ so you must use the **--recursive** argument when cloaning it.  For example:
 git clone --recursive https://github.com/jewettaij/superpose3d_cpp ~/superpose3d_cpp
 ```
 
+## Development Status: *Beta*
+
+The source code in the ".hpp" header files are unlikely to change,
+but *include paths* could change in the future.
+(See [below](#-Additional-Modifications-Needed).)
+
 ## Installation
 
 This is a header-only library.
@@ -110,7 +114,7 @@ and all of the *hpp* files in the
 directory to a location in your
 [include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
 
-#### Additional modifications needed
+#### Additional Modifications Needed
 
 *If you copy these files into the same directory,
 you may need to modify the include path
@@ -119,6 +123,7 @@ and the #include statements in your header files
 ([here](include/superpose.hpp) and
  [here](lambda-lanczos/include/lambda_lanczos))
 to delete "lambda_lanczos/" from these paths where it appears.
+I hope this will change in the future.
 -Andrew 2019-12-03*
 
 
