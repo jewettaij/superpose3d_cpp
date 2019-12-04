@@ -428,7 +428,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
   // Optional: Decide the scale factor, c
   Scalar c = 1.0;   // by default, don't rescale the coordinates
 
-  if (*pC) {
+  if (pC) {
     // If the user supplies a non-NULL pC argument, then they want
     // to calculate the optimal scaling factor, c, (and store it in *pC).
     Scalar Waxaixai = 0.0;
@@ -457,7 +457,7 @@ _Superpose3D(size_t N,             //!< number of points in both point clouds
       }
     }
     *pC = c;
-  } // if (*pC)
+  } // if (pC)
 
 
   // Finally compute the RMSD between the two coordinate sets:
