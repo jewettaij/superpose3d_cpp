@@ -502,17 +502,6 @@ _Superpose3D(size_t N,             // number of points in both point clouds
     }
   }
 
-  // An alternate method to compute "aTranslate" using matrices:
-  //Rmatrix = np.matrix(aaRotate)
-  //TcolumnVec = np.matrix(np.empty((3,1))) //3x1 matrix<->[[0],[0],[0]]
-  //for d in range(0,3):
-  //    TcolumnVec[d][0] = -aCenter_m[d]
-  //TcolumnVec = c * Rmatrix * TcolumnVec
-  //for d in range(0,3):
-  //   TcolumnVec[d][0] += aCenter_f[d]
-  // #Turn the column vector back into an ordinary numpy array of size 3:
-  //aTranslate = np.array(TcolumnVec.transpose())[0]
-
   // Deallocate the temporary arrays we created earlier (if necessary).
   if (aXf_s)
     Dealloc2D(&aXf_s, &aaXf_s);

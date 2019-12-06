@@ -12,20 +12,21 @@ Note: There is a python version of this repository
 **superpose3d_cpp** is a header-only C++ library containing the definition
 of a class whose single public member function, *Superpose()*,
 takes two N×3 arrays representing coordinates of points
-from a point cloud (***X_i*** and ***x_i***) as arguments.
-(Both *X_i* and *x_i* should be implemented as C style pointer→pointer arrays.)
+from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments.
+(Both *X<sub>ni</sub* and *x<sub>ni</sub>* should be implemented as C style
+pointer-to-pointer arrays.)
 Treating them as rigid objects,
 *Superpose3D::Superpose()* attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
 
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{i=1}^n\,w_i\,\left|X_i-\left(\sum_{j=1}^ncR_{ij}x_j+T_i\right)\right|^2\quad\middle/\quad\sum_{i=1}^nw_i}\right}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
 
-If *w<sub>i</sub>* are omitted (ie. if *w<sub>i</sub> = nullptr*),
+If *w<sub>n</sub>* are omitted (ie. if *w<sub>n</sub> = nullptr*),
 then equal weights are used.  In that case:
 
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{i=1}^n\,\,\left|X_i-\left(\sum_{j=1}^n cR_{ij}x_j+T_i\right)\right|^2}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
 
 ...where:
 ```
@@ -65,7 +66,7 @@ double rmsd =
 //       superposer.R, superposer.T, and superposer.c, respectively.
 ```
 Each point in the point cloud will be given equal weights when calculating RMSD.
-If you want to specify the weights (*w<sub>i</sub>* in the formula above),
+If you want to specify the weights (*w<sub>n</sub>* in the formula above),
 then use:
 ```
 superposer.Superpose(X, x, w);
@@ -114,7 +115,7 @@ you will need to modify your include path
 (ie. your "-I" compiler arguments)
 and the *#include* statements in your header files
 ([here](./include/superpose3d.hpp) and
- [here](https://github.com/mrcdr/lambda-lanczos/include)
+ [here](https://github.com/mrcdr/lambda-lanczos/blob/master/include/lambda_lanczos/lambda_lanczos.hpp))
 to delete "lambda_lanczos/" from these paths where it appears.
 I will try to persuade the author of "lambda_lanczos" to remove
 explicit references to this subdirectory in his library code.
