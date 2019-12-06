@@ -13,7 +13,7 @@ Note: There is a python version of this repository
 of a class whose single public member function, *Superpose()*,
 takes two N×3 arrays representing coordinates of points
 from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments.
-(Both *X<sub>ni</sub* and *x<sub>ni</sub>* should be implemented as C style
+(Both *X<sub>ni</sub>* and *x<sub>ni</sub>* should be implemented as C style
 pointer-to-pointer arrays.)
 Treating them as rigid objects,
 *Superpose3D::Superpose()* attempts to superimpose
