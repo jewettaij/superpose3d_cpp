@@ -5,7 +5,7 @@
 using std::vector;
 
 
-#include "lambda_lanczos/lambda_lanczos.hpp"
+#include "lambda_lanczos.hpp"
 namespace lambda_lanczos {
 
 /// @brief PEigenCalculator is a class containing only one useful member

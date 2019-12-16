@@ -14,7 +14,7 @@ of a class whose single public member function, *Superpose()*,
 takes two N×3 arrays representing coordinates of points
 from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments.
 (Both *X<sub>ni</sub>* and *x<sub>ni</sub>* should be implemented as C style
-pointer-to-pointer arrays.)
+pointer-to-pointer 2D arrays.)
 Treating them as rigid objects,
 *Superpose3D::Superpose()* attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
@@ -30,14 +30,14 @@ then equal weights are used.  In that case:
 
 ...where:
 ```
-   T = a translation vector (a 1-D numpy array containing x,y,z displacements),
-   R = a rotation matrix    (a 3x3 numpy array whose determinant = 1),
-   c = a scale factor       (a number)
+   T = a translation vector (a 1-D array containing x,y,z displacements),
+   R = a rotation matrix    (a 3x3 array whose determinant = 1),
+   c = a scale factor       (a number, optional, 1 by default)
 ```
 
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in data members named *T*, *R*, and *c*, respectively.
-
+(As with *X* and *x*, *R* is implemented as a C-style pointer-to-pointer.)
 
 ##  Example usage
 
@@ -104,29 +104,11 @@ This is a header-only library.
 
 Copy the files [include/superpose3d.hpp](include),
 and all of the *hpp* files in the
-[lambda-lanczos/include/lambda_lanczos](lambda-lanczos/include/lambda_lanczos)
+[lambda-lanczos/include/lambda_lanczos](https://github.com/mrcdr/lambda-lanczos/tree/master/include/lambda_lanczos)
 directory to a location in your
 [include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
 
-## *Additional Modifications Needed*
-
-*Currently, if you copy these files into the same directory,
-you will need to modify your include path
-(ie. your "-I" compiler arguments)
-and the *#include* statements in your header files
-([here](./include/superpose3d.hpp) and
- [here](https://github.com/mrcdr/lambda-lanczos/blob/master/include/lambda_lanczos/lambda_lanczos.hpp))
-to delete "lambda_lanczos/" from these paths where it appears.
-I will try to persuade the author of "lambda_lanczos" to remove
-explicit references to this subdirectory in his library code.
--Andrew 2019-12-04*
-
-
 ## Development Status: *Beta*
-
-The source code in the ".hpp" header files are unlikely to change,
-but *include paths* could change in the future.
-(See [above](#Additional-Modifications-Needed).)
 
 ## License
 
