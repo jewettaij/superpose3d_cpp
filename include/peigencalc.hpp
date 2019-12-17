@@ -50,7 +50,7 @@ Scalar PEigenCalculator<Scalar>::
                  bool find_max)
 {
   assert(n > 0);
-  auto matmul = [&](const vector<double>& in, vector<double>& out) {
+  auto matmul = [&](const vector<Scalar>& in, vector<Scalar>& out) {
     for(int i = 0; i < n; i++) {
       for(int j = 0; j < n; j++) {
         out[i] += matrix[i][j]*in[j];
