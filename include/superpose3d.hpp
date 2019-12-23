@@ -6,11 +6,9 @@
 #define _SUPERPOSE3D_HPP
 
 #include "peigencalc.hpp"
-using namespace lambda_lanczos;
 
 
 namespace superpose3d {
-
 
 // -----------------------------------------------------
 // ---- some utilities I need to declare beforehand ----

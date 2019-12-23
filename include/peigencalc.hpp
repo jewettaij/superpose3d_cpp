@@ -1,3 +1,6 @@
+///   @file  peigencalc.hpp
+///   @brief Provide a means to calculate the largest (or smallest) eigenvalue
+///          (and corresponding eigenvector) of a small dense square matrix.
 #ifndef _PEIGENCALC_HPP
 #define _PEIGENCALC_HPP
 
@@ -6,12 +9,13 @@ using std::vector;
 
 
 #include "lambda_lanczos.hpp"
-namespace lambda_lanczos {
 
 /// @brief PEigenCalculator is a class containing only one useful member
 /// function PrincipalEigen().  This function calculates the principal (largest
 /// or smallest) eigenvalue and corresponding eigenvector of an n x n matrix.
-/// It is not intended for matrix diagonalization (finding all eigenvectors).
+/// This is (presumably) faster than diagionalizing the entire matrix.
+/// This code is a wrapper.  Internally, it uses the "LambdaLanczos" class
+/// (which is more general and can work with large sparse matrices).
 
 template<typename Scalar>
 class PEigenCalculator
@@ -65,7 +69,7 @@ Scalar PEigenCalculator<Scalar>::
 
   Scalar eval;
   // (The next two lines do all the hard work.)
-  LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
+  lambda_lanczos::LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
   ll_engine.init_vector = init_vec;
   size_t itern = ll_engine.run(eval, evec);
 
@@ -79,7 +83,5 @@ Scalar PEigenCalculator<Scalar>::
   return eval;
 }
 
-
-} // namespace lambda_lanczos {
 
 #endif //#ifndef _PEIGENCALC_HPP
