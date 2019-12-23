@@ -9,7 +9,7 @@
 using namespace lambda_lanczos;
 
 
-namespace superpose3d_lammps {
+namespace superpose3d {
 
 
 // -----------------------------------------------------
@@ -558,7 +558,7 @@ Superpose3D<Scalar>::operator = (Superpose3D<Scalar> source) {
 }
 
 
-} //namespace superposed3d_lammps
+} //namespace superposed3d
 
 
 

@@ -3,7 +3,7 @@
 using namespace std;
 
 #include "superpose3d.hpp"
-using namespace superpose3d_lammps;
+using namespace superpose3d;
 
 
 int main(int argc, char **argv) {
