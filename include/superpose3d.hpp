@@ -1,23 +1,6 @@
 ///   @file  superpose3d.hpp
 ///   @brief Calculate the optimal rotation, translation and scale needed to
 ///          optimally fit two different point clouds containing n points.
-/* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
-
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
-
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   Contributing authors: Andrew Jewett (Scripps Research)
-------------------------------------------------------------------------- */
-
 
 #ifndef _SUPERPOSE3D_HPP
 #define _SUPERPOSE3D_HPP
@@ -29,9 +12,9 @@ using namespace lambda_lanczos;
 namespace superpose3d_lammps {
 
 
-// ----------------------------------------------------------------
-// ---------- some utilities I need to declare beforehand ---------
-// ----------------------------------------------------------------
+// -----------------------------------------------------
+// ---- some utilities I need to declare beforehand ----
+// -----------------------------------------------------
 
 
 // Because I allocate 2-dimensional arrays frequently, I created a 
