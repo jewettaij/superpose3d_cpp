@@ -150,11 +150,12 @@ public:
 
 private:
 
+  // memory management:
   void Alloc(size_t N);
   void Init();
   void Dealloc();
 
-  // memory management: copy constructor, swap, and 
+  // memory management: copy constructor, swap, and assignment operator
   Superpose3D(const Superpose3D<Scalar>& source);
   void swap(Superpose3D<Scalar> &other);
   Superpose3D<Scalar>& operator = (Superpose3D<Scalar> source);
