@@ -102,11 +102,12 @@ git clone --recursive https://github.com/jewettaij/superpose3d_cpp ~/superpose3d
 
 This is a header-only library.
 
-Copy the files in the [include](include) subdirectory,
-and all of the *hpp* files in the
+Copy the *hpp* files in the [include](include) subdirectory,
+and the *hpp* files in the
 [lambda-lanczos/include/lambda_lanczos](https://github.com/mrcdr/lambda-lanczos/tree/master/include/lambda_lanczos)
 subdirectory to a location in your
 [include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
+*(Both repositories share the same license.)*
 
 ## Development Status: *Beta*
 
