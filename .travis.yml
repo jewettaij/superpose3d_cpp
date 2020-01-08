@@ -7,8 +7,8 @@ matrix:
 
     - language: cpp
       compiler: gcc
-      # (Optional? update to a relatively recent linux distro)
-      dist: xenial
+      # Optional: "dist" specifies the operating system ("bionic"=ubuntu18.04)
+      dist: bionic
       #install:
       #  - sudo apt-get install -qq cppcheck
       #  - git clone https://github.com/kward/shunit2 shunit2

@@ -7,19 +7,56 @@ using namespace superpose3d;
 
 
 int main(int argc, char **argv) {
+  double *_X; //the immobile point cloud (in continguous memory)
+  double **X; //the immobile point cloud (as a pointer->pointer)
+  double *_x; //the mobile point cloud (in continguous memory)
+  double **x; //the mobile point cloud (as a pointer->pointer)
+
   const int N = 4;
 
-  // Allocate the arrays for the coordinates for this quick and dirty example.
-  // (To make it easier to initialize them, use fixed-size arrays.)
-  double _X[N][3] = {{0,0,0},{0,0,1},{0,1,1},{1,1,1}};
-  double _x[N][3] = {{0,0,0},{0,1,0},{0,1,-1},{1,1,-1}};
-  // Must convert these 2D arrays into to pointer-to-pointer-to-double
-  double *X[N] = {_X[0], _X[1], _X[2], _X[3]};
-  double *x[N] = {_x[0], _x[1], _x[2], _x[3]};
-  // (Note: x=X after rotation around the Z axis)
+  // Allocate the immobile point cloud array (X) and fill it with coordinates
+  Alloc2D(N, 3, &_X, &X);
+  X[0][0] = 0.0;
+  X[0][1] = 0.0;
+  X[0][2] = 0.0;
 
-  // Allocate space for X and x, and load the coordinates (omitted)
+  X[1][0] = 0.0;
+  X[1][1] = 0.0;
+  X[1][2] = 1.0;
 
+  X[2][0] = 0.0;
+  X[2][1] = 1.0;
+  X[2][2] = 1.0;
+
+  X[3][0] = 1.0;
+  X[3][1] = 1.0;
+  X[3][2] = 1.0;
+
+  // Allocate the mobile point cloud array (x) and fill it with coordinates
+  Alloc2D(N, 3, &_x, &x);
+  x[0][0] = 0.0;
+  x[0][1] = 0.0;
+  x[0][2] = 0.0;
+
+  x[1][0] = 0.0;
+  x[1][1] = 1.0;
+  x[1][2] = 0.0;
+
+  x[2][0] = 0.0;
+  x[2][1] = 1.0;
+  x[2][2] = -1.0;
+
+  x[3][0] = 1.0;
+  x[3][1] = 1.0;
+  x[3][2] = -1.0;
+
+  // ----------------- main code -----------------
+  // Note: Superpose only works on 2D arrays which are implemented as C-style
+  // pointer->pointer arrays.  (vector<vector>> or fixed size arrays like
+  // "double _X[4][3]" will not work and cannot be sent to
+  // Superpose3D::Superpose())
+
+  // Now superimpose the two point clouds:
   double rmsd;
   Superpose3D<double> s(N);
 
@@ -35,6 +72,7 @@ int main(int argc, char **argv) {
       cout << s.R[iy][ix] << " ";
     cout << "\n";
   }
+  // -------------------------------------------
 
   // Since one point cloud is just a rotated version of the other, we expect
   // that the RMSD between them should be 0.  Insure that this is so.
@@ -42,8 +80,9 @@ int main(int argc, char **argv) {
 
   // Now create some versions of "X" that have been modified in some way
   // and try again:
-  double _Xscshift[N][3];
-  double *Xscshift[N]= {_Xscshift[0], _Xscshift[1], _Xscshift[2], _Xscshift[3]};
+  double *_Xscshift;
+  double **Xscshift;
+  Alloc2D(N, 3, &_Xscshift, &Xscshift);
   for (int i = 0; i < N; i++) {
     for (int d = 0; d < 3; d++) {
       Xscshift[i][d] = 2.0 * x[i][d];
@@ -81,7 +120,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  // Calculate the sum-squared distance between points in the original
+  // Manually calculate the sum-squared distance between points in the original
   // point cloud, and the mobile point cloud (after transformation applied).
   double RMSD = 0.0;
 
@@ -92,9 +131,14 @@ int main(int argc, char **argv) {
 
   RMSD = sqrt(RMSD / N);
 
+  // Compare the manual method of computing RMSD with the
+  // prediction from Superpose3d::Superpose() (currently stored in "rmsd")
   assert(abs(RMSD - rmsd) < 1.0e-6);
 
+  Dealloc2D(&_Xscshift, &Xscshift);
   Dealloc2D(&_aXprime, &Xprime);
+  Dealloc2D(&_X, &X);
+  Dealloc2D(&_x, &x);
 
   return EXIT_SUCCESS;
 } // main()

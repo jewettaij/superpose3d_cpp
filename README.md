@@ -54,7 +54,7 @@ double *w;    // optional weights used in calculation of RMSD
 // Allocate space for X and x, and load their coordinates (omitted)
 // ...
 
-Superpose3D superposer(N);
+Superpose3D<double> superposer(N);
 // (N is the number of points in either point cloud.)
 
 // Calculate the optimal supperposition between the two point clouds (X and x)
@@ -65,6 +65,8 @@ double rmsd =
 // Note: The optimal rotation, translation, and scale factor will be stored in
 //       superposer.R, superposer.T, and superposer.c, respectively.
 ```
+*(A complete working example can be found [here](tests/test.cpp).)*
+
 Each point in the point cloud will be given equal weights when calculating RMSD.
 If you want to specify the weights (*w<sub>n</sub>* in the formula above),
 then use:
