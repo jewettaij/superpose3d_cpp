@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
 
   // Now create some versions of "X" that have been modified in some way
   // and try again:
-  double *_Xscshift;
+  double *_Xscshift; //(contiguous memory version)
   double **Xscshift;
   Alloc2D(N, 3, &_Xscshift, &Xscshift);
   for (int i = 0; i < N; i++) {
@@ -106,9 +106,9 @@ int main(int argc, char **argv) {
   // Now apply this transformation to the new coordinates
   // and recalculate the RMSD manually (by comparing coordinate sets).
   // Check to see if the RMSD computed by two different methods agrees.
+  double *_Xprime; //(contiguous memory version)
   double **Xprime;
-  double *_aXprime;
-  Alloc2D(N, 3, &_aXprime, &Xprime);
+  Alloc2D(N, 3, &_Xprime, &Xprime);
 
   // Now apply this transformation to the mobile point cloud. Save in "aaXprime"
   for (size_t n = 0; n < N; n++) {
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
   assert(abs(RMSD - rmsd) < 1.0e-6);
 
   Dealloc2D(&_Xscshift, &Xscshift);
-  Dealloc2D(&_aXprime, &Xprime);
+  Dealloc2D(&_Xprime, &Xprime);
   Dealloc2D(&_X, &X);
   Dealloc2D(&_x, &x);
 
