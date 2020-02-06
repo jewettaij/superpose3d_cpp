@@ -94,8 +94,8 @@ Note that if you enable scale transformations, you should be wary if the functio
 
 ## Downloading
 
-This repository has a [dependency](https://github.com/mrcdr/lambda-lanczos)
-so you must use the **--recursive** argument when cloaning it.  For example:
+This repository has a [dependency](https://github.com/jewettaij/jacobi_pd)
+so you must use the **--recursive** argument when cloning it.  For example:
 
 ```
 git clone --recursive https://github.com/jewettaij/superpose3d_cpp ~/superpose3d_cpp
@@ -104,9 +104,9 @@ git clone --recursive https://github.com/jewettaij/superpose3d_cpp ~/superpose3d
 
 This is a header-only library.
 
-Copy the *hpp* files in the [include](include) subdirectory,
+Copy the *hpp* file(s) in the [include](include) subdirectory,
 and the *hpp* files in the
-[lambda-lanczos/include/lambda_lanczos](https://github.com/mrcdr/lambda-lanczos/tree/master/include/lambda_lanczos)
+[jacobi_pd/include](https://github.com/jewettaij/jacobi_pd/tree/master/include)
 subdirectory to a location in your
 [include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
 *(Both repositories share the same license.)*

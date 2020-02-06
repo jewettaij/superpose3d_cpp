@@ -68,7 +68,7 @@ Scalar PEigenCalculator<Scalar>::
   };
 
   Scalar eval;
-  // (The next two lines do all the hard work.)
+  // (The next 3 lines do all the hard work.)
   lambda_lanczos::LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
   ll_engine.init_vector = init_vec;
   size_t itern = ll_engine.run(eval, evec);

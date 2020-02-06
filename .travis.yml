@@ -11,7 +11,6 @@ matrix:
       dist: bionic
       #install:
       #  - sudo apt-get install -qq cppcheck
-      #  - git clone https://github.com/kward/shunit2 shunit2
       script:
         - cd tests
         - g++ -std=c++11 -I../include -I../lambda-lanczos/include/lambda_lanczos -o test_superpose3d test.cpp
