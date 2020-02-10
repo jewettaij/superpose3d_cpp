@@ -9,6 +9,8 @@
 
 
 
+#include "matrix_alloc.hpp"
+
 // Note: The Superpose3D::Superpose() function need to calculate the eigenvalues
 // and eigenvectors of a 4x4 matrix.  Two methods: Lanczos or Jacobi:
 #ifdef SUPERPOSE3D_USES_LANCZOS
@@ -26,43 +28,15 @@
 #endif
 
 
-
 namespace superpose3d {
 
-// -----------------------------------------------------
-// ---- some utilities I need to declare beforehand ----
-// -----------------------------------------------------
+using namespace matrix_alloc;
 
-
-// Because I allocate 2-dimensional arrays frequently, I created a 
-// few functions that make this more convenient.
-
-/// @brief  Allocate a 2-dimensional table row-major order
-template<typename Entry, typename Integer>
-void Alloc2D(Integer const size[2], //!< size of the array in x,y directions
-             Entry **paX,           //!< pointer to 1-D contiguous-memory array
-             Entry ***paaX);        //!< pointer to 2-D multidimensional array
-
-/// @brief
-/// Slightly different version of Alloc2D()
-/// In this version, the the size of the array specified by 2 integer arguments.
-template<typename Entry>
-void Alloc2D(size_t M,              //!< size of the array (outer)
-             size_t N,              //!< size of the array (inner)
-             Entry **paX,           //!< pointer to 1-D contiguous-memory array
-             Entry ***paaX);        //!< pointer to 2-D multidimensional array
-
-/// @brief
-/// This function is the corresponding way to dellocate arrays
-/// that were created using Alloc2D()
-template<typename Entry>
-void Dealloc2D(Entry **paX,          //!< pointer to 1-D contiguous-memory array
-               Entry ***paaX);       //!< pointer to 2-D multidimensional array
-
-
+// -----------------------------------------------------------
+// ------- some utilities I need to declare beforehand -------
+// -----------------------------------------------------------
 template<typename Scalar>
 static inline Scalar SQR(Scalar x) {return x*x;}
-
 
 // This is a stand-alone function invoked by Superpose3D::Superpose()
 // but it does all the work.  This function was not intended for public use.
@@ -74,8 +48,6 @@ _Superpose3D(size_t N, Scalar **aaRotate, Scalar *aTranslate,
              Scalar const *aWeights=nullptr, Scalar *pC=nullptr,
              PEigenCalculator<Scalar> *pPE=nullptr,
              Scalar **aaXf_s=nullptr, Scalar **aaXm_s=nullptr);
-
-
 
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
