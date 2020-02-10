@@ -1,11 +1,30 @@
-///   @file  superpose3d.hpp
-///   @brief Calculate the optimal rotation, translation and scale needed to
-///          optimally fit two different point clouds containing n points.
+/// @file     superpose3d.hpp
+/// @brief    Calculate the optimal rotation, translation and scale needed to
+///           optimally fit two different point clouds containing n points.
+/// @author   Andrew Jewett
+/// @license  MIT
 
 #ifndef _SUPERPOSE3D_HPP
 #define _SUPERPOSE3D_HPP
 
+
+
+// Note: The Superpose3D::Superpose() function need to calculate the eigenvalues
+// and eigenvectors of a 4x4 matrix.  Two methods: Lanczos or Jacobi:
+#ifdef SUPERPOSE3D_USES_LANCZOS
+// If you select this version, you must download "lambda_lanczos.hpp" from
+// https://github.com/mrcdr/lambda-lanczos.  The "peigencalc_lanczos.hpp"
+// file should be located in a different directory with this repository.
+#include "peigencalc_lanczos.hpp"
+#else
+// DEFAULT:
+// The ordinary Jacobi diagonalization code turned out to be much faster
+// than LambdaLanczos for 4x4 matrices, so we use this method by default.
+// If you select this version, you must download "jacobi.hpp" and
+// "matrix_alloc.hpp" from https://github.com/jewettaij/jacobi_pd
 #include "peigencalc.hpp"
+#endif
+
 
 
 namespace superpose3d {
