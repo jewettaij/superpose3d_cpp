@@ -58,10 +58,13 @@ _Superpose3D(size_t N, Scalar **aaRotate, Scalar *aTranslate,
 ///         Superpose().  It is useful for repeatedly calculating the optimal
 ///         superposition (rotations, translations, and scale transformations)
 ///         between two point clouds of the same size.
-template<typename Scalar, typename ConstArrayOfCoords>
+template<typename Scalar,
+         typename ConstArrayOfCoords,
+         typename ConstArray=Scalar const*>
 class Superpose3D {
 private:
   size_t N;              //number of points in the point clouds
+  Scalar *aWeights;      //weights applied to points when computing RMSD
   PEigenCalculator<Scalar, Scalar*, Scalar const* const*>
        eigen_calculator; // calculates principal eigenvalues
   // (contiguous) preallocated space for 2D arrays:
@@ -75,20 +78,19 @@ public:
   Scalar T[3]; //!< store optimal translation here
   Scalar c;  //!< store optimal scale (typically 1 unless requested by the user)
 
-  Superpose3D(size_t N = 0);  //!< N = number of points in both point clouds
+  Superpose3D(size_t N = 0);  //!< N=number of points in both point clouds
+
+  Superpose3D(size_t N,      //!< N = number of points in both point clouds
+              ConstArray aWeights); //!< weight per point for computing RMSD
 
   ~Superpose3D();
 
   /// @brief specify he number of points in both point clouds
-  void SetNumPoints(size_t N) {
-    Dealloc();
-    Alloc(N);
-  }
-
+  void SetNumPoints(size_t N);
   /// @brief return the number of points in both point clouds
-  size_t GetNumPoints() {
-    return N;
-  }
+  size_t GetNumPoints() { return N; }
+  /// @brief specify the weight applied to each point when computing RMSD
+  void SetWeights(ConstArray aWeights);
 
   /// @brief
   /// Takes two lists of xyz coordinates (of the same length, specified earlier)
@@ -119,7 +121,6 @@ public:
   Scalar Superpose(
           ConstArrayOfCoords aaXf,        //!< coords for the "frozen" object
           ConstArrayOfCoords aaXm,        //!< coords for the "mobile" object
-          Scalar const *aWeights=nullptr, //!< optional weights
           bool allow_rescale=false        //!< rescale mobile object? (c!=1?)
                    )
   {
@@ -129,10 +130,10 @@ public:
   }
 
   // memory management: copy and move constructor, swap, and assignment operator
-  Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords>& source);
-  Superpose3D(Superpose3D<Scalar, ConstArrayOfCoords>&& other);
-  void swap(Superpose3D<Scalar, ConstArrayOfCoords> &other);
-  Superpose3D<Scalar, ConstArrayOfCoords>& operator = (Superpose3D<Scalar, ConstArrayOfCoords> source);
+  Superpose3D(const Superpose3D<Scalar,ConstArrayOfCoords,ConstArray>& source);
+  Superpose3D(Superpose3D<Scalar,ConstArrayOfCoords,ConstArray>&& other);
+  void swap(Superpose3D<Scalar,ConstArrayOfCoords,ConstArray> &other);
+  Superpose3D<Scalar,ConstArrayOfCoords,ConstArray>& operator = (Superpose3D<Scalar,ConstArrayOfCoords,ConstArray> source);
 
 private:
 
@@ -411,50 +412,80 @@ _Superpose3D(size_t N,             // number of points in both point clouds
 }
 
 
-template<typename Scalar, typename ConstArrayOfCoords>
-Superpose3D<Scalar, ConstArrayOfCoords>::Superpose3D(size_t N)
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+SetNumPoints(size_t N) {
+  Dealloc();
+  Alloc(N);
+}
+
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+SetWeights(ConstArray aWeights) {
+  for (size_t i = 0; i < N; i++)
+    this->aWeights[i] = aWeights[i];
+}
+
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::Superpose3D(size_t N)
   :eigen_calculator(4)
 {
   Init();
   Alloc(N);
 }
 
-template<typename Scalar, typename ConstArrayOfCoords>
-Superpose3D<Scalar, ConstArrayOfCoords>::~Superpose3D() {
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+Superpose3D(size_t N, ConstArray aWeights)
+  :eigen_calculator(4)
+{
+  Init();
+  Alloc(N);
+  SetWeights(aWeights);
+}
+
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::~Superpose3D() {
   Dealloc();
 }
 
-template<typename Scalar, typename ConstArrayOfCoords>
-void Superpose3D<Scalar, ConstArrayOfCoords>::
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Init() {
   R = nullptr;
+  aWeights = nullptr;
   aaXf_shifted = nullptr;
   aaXm_shifted = nullptr;
 }
 
-template<typename Scalar, typename ConstArrayOfCoords>
-void Superpose3D<Scalar, ConstArrayOfCoords>::
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Alloc(size_t N) {
   this->N = N;
+  aWeights = new Scalar [N];
+  for (size_t i = 0; i < N; i++)
+    aWeights[i] = 1.0 / N;
   Alloc2D(3, 3, &R);
   Alloc2D(N, 3, &aaXf_shifted);
   Alloc2D(N, 3, &aaXm_shifted);
 }
 
-template<typename Scalar, typename ConstArrayOfCoords>
-void Superpose3D<Scalar, ConstArrayOfCoords>::
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Dealloc() {
   if (R)
     Dealloc2D(&R);
+  if (aWeights)
+    delete [] aWeights;
   if (aaXf_shifted)
     Dealloc2D(&aaXf_shifted);
   if (aaXm_shifted)
     Dealloc2D(&aaXm_shifted);
 }
 
-template<typename Scalar, typename ConstArrayOfCoords>
-Superpose3D<Scalar, ConstArrayOfCoords>::
-Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords>& source)
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>& source)
   :eigen_calculator(4, true)
 {
   Init();
@@ -470,9 +501,9 @@ Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords>& source)
   }
 }
 
-template<typename Scalar, typename ConstArrayOfCoords>
-void Superpose3D<Scalar, ConstArrayOfCoords>::
-swap(Superpose3D<Scalar, ConstArrayOfCoords> &other) {
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+swap(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &other) {
   std::swap(N, other.N);
   std::swap(R, other.R);
   std::swap(aaXf_shifted, other.aaXf_shifted);
@@ -480,18 +511,18 @@ swap(Superpose3D<Scalar, ConstArrayOfCoords> &other) {
 }
 
 // Move constructor (C++11)
-template<typename Scalar, typename ConstArrayOfCoords>
-Superpose3D<Scalar, ConstArrayOfCoords>::
-Superpose3D(Superpose3D<Scalar, ConstArrayOfCoords>&& other) {
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+Superpose3D(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>&& other) {
   Init();
   swap(*this, other);
 }
 
 // Using the "copy-swap" idiom for the assignment operator
-template<typename Scalar, typename ConstArrayOfCoords>
-Superpose3D<Scalar, ConstArrayOfCoords>&
-Superpose3D<Scalar, ConstArrayOfCoords>::
-operator = (Superpose3D<Scalar, ConstArrayOfCoords> source) {
+template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>&
+Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
+operator = (Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> source) {
   this->swap(source);
   return *this;
 }

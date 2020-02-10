@@ -54,8 +54,15 @@ double *w;    // optional weights used in calculation of RMSD
 // Allocate space for X and x, and load their coordinates (omitted)
 // ...
 
-Superpose3D<double> superposer(N);
-// (N is the number of points in either point cloud.)
+Superpose3D<double, double const* const*, double const*> superposer(N, w);
+// Notes:
+// -"N" is the number of points in either point cloud.
+// -"double const* const*" is the type of array for storing coordinates
+//   in this example (however you can use vectors or fixed sized arrays).
+// -"double const*" is the type of array for storing the weights in this
+//    example.  If you are content to assign equal weight to each point, you
+//    can omit the 3rd template argument and also omit "w" from the constructor:
+// Superpose3D<double, double const* const*> superposer(N);
 
 // Calculate the optimal supperposition between the two point clouds (X and x)
 

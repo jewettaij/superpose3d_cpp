@@ -52,6 +52,8 @@ int main(int argc, char **argv) {
 
   // Now superimpose the two point clouds:
   double rmsd;
+
+  //Superpose3D<double, double const* const*, double const*> s(N, weights);
   Superpose3D<double, double const* const*> s(N);
 
   rmsd = s.Superpose(X, x);
@@ -84,7 +86,7 @@ int main(int argc, char **argv) {
   }
 
   // Now try superposition again using these new coordinates
-  rmsd = s.Superpose(X, Xscshift, nullptr, true);
+  rmsd = s.Superpose(X, Xscshift);
   
   cout << "Optimal Scale factor, C = " << s.c << "\n";
   cout << "Optimal superposition rmsd = " << rmsd << "\n";
