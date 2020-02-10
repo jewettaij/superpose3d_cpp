@@ -46,7 +46,7 @@ inline static Scalar
 _Superpose3D(size_t N, Scalar **aaRotate, Scalar *aTranslate,
              Scalar const *const *aaXf_o, Scalar const *const *aaXm_o,
              Scalar const *aWeights=nullptr, Scalar *pC=nullptr,
-             PEigenCalculator<Scalar> *pPE=nullptr,
+             PEigenCalculator<Scalar, Scalar*, Scalar const* const*> *pPE=nullptr,
              Scalar **aaXf_s=nullptr, Scalar **aaXm_s=nullptr);
 
 // -----------------------------------------------------------
@@ -62,13 +62,11 @@ template<typename Scalar>
 class Superpose3D {
 private:
   size_t N;              //number of points in the point clouds
-  PEigenCalculator<Scalar> eigen_calculator; // calculates principal eigenvalues
+  PEigenCalculator<Scalar, Scalar*, Scalar const* const*>
+       eigen_calculator; // calculates principal eigenvalues
   // (contiguous) preallocated space for 2D arrays:
   Scalar **aaXf_shifted; //preallocated space for fixed point cloud (Nx3 array)
   Scalar **aaXm_shifted; //preallocated space for mobile point cloud (Nx3 array)
-  Scalar *aXf_shifted;   //contiguous memory allocated for aaXf_shifted
-  Scalar *aXm_shifted;   //contiguous memory allocated for aaXm_shifted
-  Scalar *_R;            //contiguous memory allocated for R
 
 public:
   // The next 3 data members store the rotation, translation and scale
@@ -77,7 +75,7 @@ public:
   Scalar T[3]; //!< store optimal translation here
   Scalar c;  //!< store optimal scale (typically 1 unless requested by the user)
 
-  Superpose3D(size_t N=0);  //!< N = number of points in both point clouds
+  Superpose3D(size_t N = 0);  //!< N = number of points in both point clouds
 
   ~Superpose3D();
 
@@ -85,7 +83,6 @@ public:
   void SetNumPoints(size_t N) {
     Dealloc();
     Alloc(N);
-    assert(this->N == N);
   }
 
   /// @brief return the number of points in both point clouds
@@ -139,6 +136,12 @@ public:
                    aaXm_shifted);
   }
 
+  // memory management: copy and move constructor, swap, and assignment operator
+  Superpose3D(const Superpose3D<Scalar>& source);
+  Superpose3D(Superpose3D<Scalar>&& other);
+  void swap(Superpose3D<Scalar> &other);
+  Superpose3D<Scalar>& operator = (Superpose3D<Scalar> source);
+
 private:
 
   // memory management:
@@ -146,10 +149,6 @@ private:
   void Init();
   void Dealloc();
 
-  // memory management: copy constructor, swap, and assignment operator
-  Superpose3D(const Superpose3D<Scalar>& source);
-  void swap(Superpose3D<Scalar> &other);
-  Superpose3D<Scalar>& operator = (Superpose3D<Scalar> source);
 }; // class Superpose3D
 
 
@@ -157,50 +156,6 @@ private:
 
 
 // -------------- IMPLEMENTATION --------------
-
-template<typename Entry, typename Integer>
-void Alloc2D(Integer const size[2], //!< size of the array in x,y directions
-             Entry **paX,           //!< pointer to 1-D contiguous-memory array
-             Entry ***paaX)         //!< pointer to 2-D multidimensional array
-{
-  assert(paX && paaX);
-
-  *paX = new Entry [size[0] * size[1]];
-
-  // Allocate a conventional 2-dimensional
-  // pointer-to-a-pointer data structure.
-  *paaX = new Entry* [size[1]];
-  for(Integer iy=0; iy<size[1]; iy++)
-    (*paaX)[iy] = &((*paX)[ iy*size[0] ]);
-  // The caller can access the contents of *paX using (*paaX)[i][j] notation.
-}
-
-template<typename Entry>
-void Alloc2D(size_t nrows,          //!< size of the array (outer)
-             size_t ncolumns,       //!< size of the array (inner)
-             Entry **paX,           //!< pointer to 1-D contiguous-memory array
-             Entry ***paaX)         //!< pointer to 2-D multidimensional array
-{
-  size_t size[2];
-  size[0] = ncolumns;
-  size[1] = nrows;
-  Alloc2D(size, paX, paaX);
-}
-
-
-template<typename Entry>
-void Dealloc2D(Entry **paX,          //!< pointer to 1-D contiguous-memory array
-               Entry ***paaX)        //!< pointer to 2-D multidimensional array
-{
-  if (paaX && *paaX) {
-    delete [] (*paaX);
-    *paaX = nullptr;
-  }
-  if (paX && *paX) {
-    delete [] *paX;
-    *paX = nullptr;
-  }
-}
 
 
 template<typename Scalar>
@@ -218,8 +173,6 @@ Superpose3D<Scalar>::~Superpose3D() {
 
 
 
-
-
 template<typename Scalar>
 static inline Scalar
 _Superpose3D(size_t N,             // number of points in both point clouds
@@ -228,8 +181,8 @@ _Superpose3D(size_t N,             // number of points in both point clouds
              Scalar const *const *aaXf_o, // coords for the "frozen" object
              Scalar const *const *aaXm_o, // coords for the "mobile" object
              Scalar const *aWeights,         // optional weights
-             Scalar *pC,      // rescale mobile object? if so store "c"here
-             PEigenCalculator<Scalar> *pPE, //!< eigenvalue calculator
+             Scalar *pC,        // rescale mobile object? if so store "c"here
+             PEigenCalculator<Scalar, Scalar*, Scalar const* const*> *pPE, //!< eigenvalue calculator
              Scalar **aaXf_s,   // optional preallocated (Nx3) temporary array
              Scalar **aaXm_s)   // optional preallocated (Nx3) temporary array
 {
@@ -239,7 +192,7 @@ _Superpose3D(size_t N,             // number of points in both point clouds
   bool alloc_pPE = false;
   if (! pPE) {
     alloc_pPE = true;
-    pPE = new PEigenCalculator<Scalar>(4);
+    pPE = new PEigenCalculator<Scalar, Scalar*, Scalar const* const*>(4);
   }
 
   // Find the center of mass of each object:
@@ -267,22 +220,18 @@ _Superpose3D(size_t N,             // number of points in both point clouds
   //aaXf_s[i][d] = dth coord of ith particle in "fixed" object
   //aaXm_s[i][d] = dth coord of ith particle in "mobile" object
 
-  // Ugly details:  we might need to allocate space for these arrays
-  Scalar *aXf_s=nullptr; //storage space for aaXf_s; aaXf_s[i][d] = aXf_s[3*i+d]
-  Scalar *aXm_s=nullptr; //storage space for aaXm_s; aaXm_s[i][d] = aXm_s[3*i+d]
+  bool alloc_aaXf_s = false;
+  bool alloc_aaXm_s = false;
+  if (! aaXf_s) {   // need to allocate the aaXf_s array?
+    Alloc2D(N, 3, &aaXf_s);
+    alloc_aaXf_s = true;
+  }
+  if (! aaXm_s) {   // need to allocate the aaXm_s array?
+    Alloc2D(N, 3, &aaXm_s);
+    alloc_aaXm_s = true;
+  }
+  assert(aaXf_s && aaXm_s);
 
-  // decide whether to allocate the aaXf_s array
-  if (! aaXf_s) {
-    Alloc2D(N, 3, &aXf_s, &aaXf_s);
-    assert(aXf_s);
-  }
-  assert(aaXf_s);
-  // decide whether to allocate the aaXm_s array
-  if (! aaXm_s) {
-    Alloc2D(N, 3, &aXm_s, &aaXm_s);
-    assert(aXm_s);
-  }
-  assert(aaXm_s);
   for (size_t n=0; n < N; n++) {
     for (int d=0; d < 3; d++) {
       // shift the coordinates so that the new center of mass is at the origin
@@ -476,10 +425,10 @@ _Superpose3D(size_t N,             // number of points in both point clouds
   }
 
   // Deallocate the temporary arrays we created earlier (if necessary).
-  if (aXf_s)
-    Dealloc2D(&aXf_s, &aaXf_s);
-  if (aXm_s)
-    Dealloc2D(&aXm_s, &aaXm_s);
+  if (alloc_aaXf_s)
+    Dealloc2D(&aaXf_s);
+  if (alloc_aaXm_s)
+    Dealloc2D(&aaXm_s);
   if (alloc_pPE)
     delete pPE;
   return rmsd;
@@ -487,62 +436,73 @@ _Superpose3D(size_t N,             // number of points in both point clouds
 
 
 template<typename Scalar>
-void Superpose3D<Scalar>::Init() {
-  _R = nullptr;
+void Superpose3D<Scalar>::
+Init() {
   R = nullptr;
   aaXf_shifted = nullptr;
   aaXm_shifted = nullptr;
-  aXf_shifted = nullptr;
-  aXm_shifted = nullptr;
 }
 
 template<typename Scalar>
-void Superpose3D<Scalar>::Alloc(size_t N) {
+void Superpose3D<Scalar>::
+Alloc(size_t N) {
   this->N = N;
-  Alloc2D(3, 3, &_R, &R);
-  Alloc2D(N, 3, &aXf_shifted, &aaXf_shifted);
-  Alloc2D(N, 3, &aXm_shifted, &aaXm_shifted);
-  assert(aXf_shifted && aXm_shifted);
+  Alloc2D(3, 3, &R);
+  Alloc2D(N, 3, &aaXf_shifted);
+  Alloc2D(N, 3, &aaXm_shifted);
 }
 
 template<typename Scalar>
-void Superpose3D<Scalar>::Dealloc() {
+void Superpose3D<Scalar>::
+Dealloc() {
   if (R)
-    Dealloc2D(&_R, &R);
-  if (aaXf_shifted) {
-    assert(aXf_shifted && aaXm_shifted && aXm_shifted);
-    Dealloc2D(&aXf_shifted, &aaXf_shifted);
-    Dealloc2D(&aXm_shifted, &aaXm_shifted);
-  }
+    Dealloc2D(&R);
+  if (aaXf_shifted)
+    Dealloc2D(&aaXf_shifted);
+  if (aaXm_shifted)
+    Dealloc2D(&aaXm_shifted);
 }
 
 template<typename Scalar>
-Superpose3D<Scalar>::Superpose3D(const Superpose3D<Scalar>& source)
-  :eigen_calculator(4,true)
+Superpose3D<Scalar>::
+Superpose3D(const Superpose3D<Scalar>& source)
+  :eigen_calculator(4, true)
 {
   Init();
   Alloc(source.N);
   assert(N == source.npoints());
-  std::copy(source.aXf_shifted,
-            source.aXf_shifted + N*3,
-            aXf_shifted);
-  std::copy(source.aXm_shifted,
-            source.aXm_shifted + N*3,
-            aXm_shifted);
+  for (int i = 0; i < N; i++) {
+    std::copy(source.aaXf_shifted[i],
+              source.aaXf_shifted[i] + N,
+              aaXf_shifted[i]);
+    std::copy(source.aaXm_shifted[i],
+              source.aaXm_shifted[i] + N,
+              aaXm_shifted[i]);
+  }
 }
 
 template<typename Scalar>
-void Superpose3D<Scalar>::swap(Superpose3D<Scalar> &other) {
-  std::swap(aXf_shifted, other.aXf_shifted);
-  std::swap(aXm_shifted, other.aXm_shifted);
+void Superpose3D<Scalar>::
+swap(Superpose3D<Scalar> &other) {
+  std::swap(N, other.N);
+  std::swap(R, other.R);
   std::swap(aaXf_shifted, other.aaXf_shifted);
   std::swap(aaXm_shifted, other.aaXm_shifted);
-  std::swap(N, other.N);
 }
 
+// Move constructor (C++11)
+template<typename Scalar>
+Superpose3D<Scalar>::
+Superpose3D(Superpose3D<Scalar>&& other) {
+  Init();
+  swap(*this, other);
+}
+
+// Using the "copy-swap" idiom for the assignment operator
 template<typename Scalar>
 Superpose3D<Scalar>&
-Superpose3D<Scalar>::operator = (Superpose3D<Scalar> source) {
+Superpose3D<Scalar>::
+operator = (Superpose3D<Scalar> source) {
   this->swap(source);
   return *this;
 }

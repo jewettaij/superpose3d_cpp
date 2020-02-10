@@ -7,6 +7,7 @@
 #ifndef _PEIGENCALC_HPP
 #define _PEIGENCALC_HPP
 
+#include <vector>
 #include "jacobi.hpp"
 using namespace jacobi_public_domain;
 
@@ -26,24 +27,24 @@ using namespace jacobi_public_domain;
 /// the calculation is implemented.  (Later on, if I choose to implement it
 /// a different way, I won't have to modify "superpose3d.hpp".)
 
-
 template<typename Scalar, typename Vector, typename ConstMatrix>
 
 class PEigenCalculator
 {
-  size_t n;                      // the size of the matrix
-  vector<Scalalar> evals;        // preallocated array storing the eigenvalues
-  vector<vector<Scalar> > evecs; // preallocated array storing the eigenvectors
+  size_t n;                      // the size of the matrices to be analyzed
+  vector<Scalar> evals;          // preallocated array for the eigenvalues
+  vector<vector<Scalar> > evecs; // preallocated array for the eigenvectors
   Jacobi<Scalar,
          vector<Scalar>&,
          vector<vector<Scalar> >&,
-         vector<vector<Scalar> >& > ecalc;
-
-//        vector<vector<double>>&>  eigen_calc(n);
+         ConstMatrix> ecalc;
 public:
-  SetSize(int matrix_size);      // specify size of the matrices we will analyze
 
-  PEigenCalculator(int matrix_size=0):evec(matrix_size), ecalc(matrix_size) {
+  /// @brief  Specify the size of the matrices you want to diagonalize later.
+  /// @param  matrix_size  the number of rows (or columns) of the matrix
+  void SetSize(int matrix_size);
+
+  PEigenCalculator(int matrix_size=0) {
     SetSize(matrix_size);
   }
 
@@ -61,33 +62,41 @@ public:
 
 // -------- IMPLEMENTATION --------
 
-template<typename Scalar>
-Scalar PEigenCalculator<Scalar>::
+template<typename Scalar, typename Vector, typename ConstMatrix>
+Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
   PrincipalEigen(ConstMatrix matrix,
                  Vector eigenvector,
                  bool find_max)
 {
   assert(n > 0);
-  ecalc.Diagonalize(M, evals, evects,
-                    Jacobi<Scalar,
+  ecalc.Diagonalize(matrix,
+                    evals,
+                    evecs,
+                    Jacobi<Scalar,          //<--specify the sorting criteria
                            vector<Scalar>&,
                            vector<vector<Scalar> >&,
-                           vector<vector<Scalar> >& >::SORT_DECREASING_EVALS);
+                           ConstMatrix>::SORT_DECREASING_EVALS);
+
+  int which_eigenvalue = n-1;
+  if (find_max)
+    which_eigenvalue = 0;
+
   if (eigenvector) {
     // If the caller requested the eigenvector as well, then
     // return it to the caller by copying the data into eigenvector[].
     for (int i = 0; i < n; i++)
-      eigenvector[i] = evects[0][i];
+      eigenvector[i] = evecs[which_eigenvalue][i];
   }
 
-  return evals[0];
+  return evals[which_eigenvalue];
 }
 
 
-template<typename Scalar>
-void Scalar PEigenCalculator<Scalar>::
+template<typename Scalar, typename Vector, typename ConstMatrix>
+void PEigenCalculator<Scalar, Vector, ConstMatrix>::
 SetSize(int matrix_size) {
   n = matrix_size;
+  ecalc.SetSize(n);
   evals.resize(n);
   evecs.resize(n);
   for (int i = 0; i < n; i++)

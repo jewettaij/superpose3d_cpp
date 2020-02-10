@@ -7,15 +7,13 @@ using namespace superpose3d;
 
 
 int main(int argc, char **argv) {
-  double *_X; //the immobile point cloud (in continguous memory)
   double **X; //the immobile point cloud (as a pointer->pointer)
-  double *_x; //the mobile point cloud (in continguous memory)
   double **x; //the mobile point cloud (as a pointer->pointer)
 
   const int N = 4;
 
   // Allocate the immobile point cloud array (X) and fill it with coordinates
-  Alloc2D(N, 3, &_X, &X);
+  Alloc2D(N, 3, &X);
   X[0][0] = 0.0;
   X[0][1] = 0.0;
   X[0][2] = 0.0;
@@ -33,7 +31,7 @@ int main(int argc, char **argv) {
   X[3][2] = 1.0;
 
   // Allocate the mobile point cloud array (x) and fill it with coordinates
-  Alloc2D(N, 3, &_x, &x);
+  Alloc2D(N, 3, &x);
   x[0][0] = 0.0;
   x[0][1] = 0.0;
   x[0][2] = 0.0;
@@ -51,10 +49,6 @@ int main(int argc, char **argv) {
   x[3][2] = -1.0;
 
   // ----------------- main code -----------------
-  // Note: Superpose only works on 2D arrays which are implemented as C-style
-  // pointer->pointer arrays.  (vector<vector>> or fixed size arrays like
-  // "double _X[4][3]" will not work and cannot be sent to
-  // Superpose3D::Superpose())
 
   // Now superimpose the two point clouds:
   double rmsd;
@@ -62,7 +56,7 @@ int main(int argc, char **argv) {
 
   rmsd = s.Superpose(X, x);
 
-  // Print the optimal rotation and translations
+  //// Print the optimal rotation and translations
 
   cout << "Optimal superposition rmsd = " << rmsd << "\n";
   cout << "optimal translation, Ti =\n"<<s.T[0]<<" "<<s.T[1]<<" "<<s.T[2]<<"\n";
@@ -80,9 +74,8 @@ int main(int argc, char **argv) {
 
   // Now create some versions of "X" that have been modified in some way
   // and try again:
-  double *_Xscshift; //(contiguous memory version)
   double **Xscshift;
-  Alloc2D(N, 3, &_Xscshift, &Xscshift);
+  Alloc2D(N, 3, &Xscshift);
   for (int i = 0; i < N; i++) {
     for (int d = 0; d < 3; d++) {
       Xscshift[i][d] = 2.0 * x[i][d];
@@ -106,9 +99,8 @@ int main(int argc, char **argv) {
   // Now apply this transformation to the new coordinates
   // and recalculate the RMSD manually (by comparing coordinate sets).
   // Check to see if the RMSD computed by two different methods agrees.
-  double *_Xprime; //(contiguous memory version)
   double **Xprime;
-  Alloc2D(N, 3, &_Xprime, &Xprime);
+  Alloc2D(N, 3, &Xprime);
 
   // Now apply this transformation to the mobile point cloud. Save in "aaXprime"
   for (size_t n = 0; n < N; n++) {
@@ -135,10 +127,10 @@ int main(int argc, char **argv) {
   // prediction from Superpose3d::Superpose() (currently stored in "rmsd")
   assert(abs(RMSD - rmsd) < 1.0e-6);
 
-  Dealloc2D(&_Xscshift, &Xscshift);
-  Dealloc2D(&_Xprime, &Xprime);
-  Dealloc2D(&_X, &X);
-  Dealloc2D(&_x, &x);
+  Dealloc2D(&Xscshift);
+  Dealloc2D(&Xprime);
+  Dealloc2D(&X);
+  Dealloc2D(&x);
 
   return EXIT_SUCCESS;
 } // main()

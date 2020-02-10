@@ -65,7 +65,7 @@ double rmsd =
 // Note: The optimal rotation, translation, and scale factor will be stored in
 //       superposer.R, superposer.T, and superposer.c, respectively.
 ```
-*(A complete working example can be found [here](tests/test.cpp).)*
+*(A complete working example can be found [here](tests/test_superpose3d.cpp).)*
 
 Each point in the point cloud will be given equal weights when calculating RMSD.
 If you want to specify the weights (*w<sub>n</sub>* in the formula above),

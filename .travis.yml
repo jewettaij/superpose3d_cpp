@@ -13,7 +13,7 @@ matrix:
       #  - sudo apt-get install -qq cppcheck
       script:
         - cd tests
-        - g++ -std=c++11 -I../include -I../lambda-lanczos/include/lambda_lanczos -o test_superpose3d test.cpp
+        - g++ -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
         #- cppcheck --quiet --error-exitcode=1
         - ./test_superpose3d
         - cd ../
