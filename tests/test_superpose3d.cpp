@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
   // Now superimpose the two point clouds:
   double rmsd;
-  Superpose3D<double> s(N);
+  Superpose3D<double, double const* const*> s(N);
 
   rmsd = s.Superpose(X, x);
 
