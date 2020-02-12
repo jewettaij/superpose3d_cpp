@@ -8,8 +8,8 @@
 superpose3d_cpp
 ===========
 
-Note: There is a python version of this repository
-[here](https://github.com/jewettaij/superpose3d).
+Note: There is a ***python version*** of this repository
+[***here***](https://github.com/jewettaij/superpose3d).
 
 **superpose3d_cpp** is a header-only C++ library containing the definition
 of a class whose single public member function, *Superpose()*,

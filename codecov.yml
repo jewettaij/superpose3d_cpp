@@ -1,0 +1,2 @@
+ignore:
+  - "tests"           # ignore the "tests" folder and its contents
