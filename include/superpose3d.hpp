@@ -49,6 +49,7 @@ _Superpose3D(size_t N, Scalar **aaRotate, Scalar *aTranslate,
              PEigenCalculator<Scalar, Scalar*, Scalar const* const*> *pPE=nullptr,
              Scalar **aaXf_s=nullptr, Scalar **aaXm_s=nullptr);
 
+
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
 // -----------------------------------------------------------
@@ -124,8 +125,9 @@ public:
           bool allow_rescale=false        //!< rescale mobile object? (c!=1?)
                    )
   {
-    return
-      _Superpose3D(N, R, T, aaXf, aaXm, aWeights, &c,
+    c = 1.0; //default value of scale parameter (if allow_rescale==false)
+    return _Superpose3D(N, R, T, aaXf, aaXm, aWeights,
+                   (allow_rescale ? &c :nullptr),
                    &eigen_calculator, aaXf_shifted, aaXm_shifted);
   }
 
@@ -223,11 +225,12 @@ _Superpose3D(size_t N,             // number of points in both point clouds
   Scalar Rgm=0.0;// <--the RMS size of the particles in the mobile object aaXm_s
 
   if (allow_rescale) {
-    // Optional: For numerical stability, we might as well rescale the
-    // coordinates initially to make sure they have the same approximate
-    // scale before we attempt to superimpose them.
-    // This is probably only useful if one object is much bigger than the other.
-    // Note: This is NOT the optimal scale factor.
+    // Optional: I have a vague hunch that if the difference in size between
+    // the two point clouds is large, then we can improve numerical stability
+    // by rescaling the coordinates initially to make sure they have the same
+    // approximate scale before we attempt to find the optimal rotation.
+    // Perhaps I'm wrong, but it does not hurt.  (To disable, set Rgf=Rgm=1.0)
+    // Note: Rgm/Rgf is NOT the optimal scale factor.
     //       (That must be determined later.)
     for (size_t n=0; n < N; n++) {
       Scalar weight = 1.0;
@@ -328,7 +331,7 @@ _Superpose3D(size_t N,             // number of points in both point clouds
   aaRotate[2][1] = 2*(p[1]*p[2] + p[0]*p[3]);
   aaRotate[0][2] = 2*(p[0]*p[2] + p[1]*p[3]);
   aaRotate[2][0] = 2*(p[0]*p[2] - p[1]*p[3]);
-    
+
   Scalar pPp = eval_max;
 
   // Optional: Decide the scale factor, c
@@ -351,10 +354,11 @@ _Superpose3D(size_t N,             // number of points in both point clouds
     c = (WaxaiXai + pPp) / Waxaixai;
 
     // Recall that we previously divided the two sets of coordinates by Rgm
-    // and Rgf respectively.(I thought it might improve numerical stability)
+    // and Rgf respectively. (I thought it might improve numerical stability)
     // Before returning "c" to the caller, we need to incorporate those
     // factors into "c" as well.
     c *= Rgf / Rgm;
+    pPp *= Rgf * Rgm;
         // And, lastly, undo this before calculating E0 below
     for (size_t n=0; n < N; n++) {
       for (int d=0; d < 3; d++) {
@@ -362,10 +366,11 @@ _Superpose3D(size_t N,             // number of points in both point clouds
         aaXm_s[n][d] *= Rgm;
       }
     }
+
     *pC = c;
   } // if (pC)
 
-
+//c=1.0;
   // Finally compute the RMSD between the two coordinate sets:
   // First compute E0 from equation 24 of the paper
   Scalar E0 = 0.0;
@@ -377,7 +382,7 @@ _Superpose3D(size_t N,             // number of points in both point clouds
       // (remember to include the scale factor "c" that we inserted)
       E0 += weight * (SQR(aaXf_s[n][d] - c*aaXm_s[n][d]));
   }
-  Scalar sum_sqr_dist = E0 - 2.0*pPp;
+  Scalar sum_sqr_dist = E0 - c*2.0*pPp;
   if (sum_sqr_dist < 0.0)
     sum_sqr_dist = 0.0;
   Scalar rmsd = sqrt(sum_sqr_dist/sum_weights);
@@ -486,17 +491,17 @@ Dealloc() {
 template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>& source)
-  :eigen_calculator(4, true)
+  :eigen_calculator(4)
 {
   Init();
   Alloc(source.N);
-  assert(N == source.npoints());
+  assert(N == source.N);
   for (int i = 0; i < N; i++) {
     std::copy(source.aaXf_shifted[i],
-              source.aaXf_shifted[i] + N,
+              source.aaXf_shifted[i] + 3,
               aaXf_shifted[i]);
     std::copy(source.aaXm_shifted[i],
-              source.aaXm_shifted[i] + N,
+              source.aaXm_shifted[i] + 3,
               aaXm_shifted[i]);
   }
 }

@@ -9,11 +9,22 @@ matrix:
       compiler: gcc
       # Optional: "dist" specifies the operating system ("bionic"=ubuntu18.04)
       dist: bionic
-      #install:
-      #  - sudo apt-get install -qq cppcheck
+      install:
+        - sudo apt-get install valgrind
+        #- sudo apt-get install -qq cppcheck
       script:
         - cd tests
-        - g++ -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
         #- cppcheck --quiet --error-exitcode=1
-        - ./test_superpose3d
+        - g++ -g -O0 -coverage -fno-inline -fno-inline-small-functions -fno-default-inline -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
+        - ./test_superpose3d 4 1000
+        - ./test_superpose3d 10 1000
+        - ./test_superpose3d 100 1000
+        - ./test_superpose3d 1000 1000
+        - ./test_superpose3d 10000 100
+        - ./test_superpose3d 100000 10
+        #- now use valgrind to find memory leaks and other errors:
+        - g++ -g -O0 -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
+        - valgrind --leak-check=yes --error-exitcode=1 ./test_superpose3d 10 10
         - cd ../
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)

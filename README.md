@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/jewettaij/superpose3d_cpp.svg?branch=master)](https://travis-ci.org/jewettaij/superpose3d_cpp.svg?branch=master)
+[![codecov](https://codecov.io/gh/jewettaij/superpose3d_cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/jewettaij/superpose3d_cpp)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
+[![C++11](https://img.shields.io/badge/C%2B%2B-11-blue.svg)](https://isocpp.org/std/the-standard)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jewettaij/superpose3d_cpp)]()
 
 
@@ -13,9 +15,7 @@ Note: There is a python version of this repository
 of a class whose single public member function, *Superpose()*,
 takes two N×3 arrays representing coordinates of points
 from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments.
-(Both *X<sub>ni</sub>* and *x<sub>ni</sub>* should be implemented as C style
-pointer-to-pointer 2D arrays.)
-Treating them as rigid objects,
+
 *Superpose3D::Superpose()* attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
@@ -23,8 +23,7 @@ between corresponding points from either point cloud, where RMSD is defined as:
 
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
 
-If *w<sub>n</sub>* are omitted (ie. if *w<sub>n</sub> = nullptr*),
-then equal weights are used.  In that case:
+If *w<sub>n</sub>* are omitted, then equal weights are used.  In that case:
 
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
 
@@ -37,7 +36,18 @@ then equal weights are used.  In that case:
 
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in data members named *T*, *R*, and *c*, respectively.
-(As with *X* and *x*, *R* is implemented as a C-style pointer-to-pointer.)
+(*T* is implementad as a C-style array and
+ *R* is implemented as a pointer-to-pointer.)
+
+The coordinate arrays (*X<sub>ni</sub>* and *x<sub>ni</sub>*)
+can be implemented as T\*\* (pointer-to-pointer),
+vector\<vector\<T\>\>&, fixed-size arrays,
+or any other C or C++ object which supports double-indexing.
+(Here **T** is any real numeric type.  Complex numbers are not supported.)
+Likewise, the weights (*w*, if specified) can be implemented as C-style arrays
+std::vectors or any other C++ container supporting indexing.
+
+
 
 ##  Example usage
 
@@ -54,15 +64,23 @@ double *w;    // optional weights used in calculation of RMSD
 // Allocate space for X and x, and load their coordinates (omitted)
 // ...
 
+// Create an instance of the "Superpose3D" class.
+
 Superpose3D<double, double const* const*, double const*> superposer(N, w);
+
+// This will allocate memory to store temporary arrays used later.
+// Once created, it can be used multiple times on different point clouds of the
+// same size (without incurring the cost of memory allocation on the heap).
 // Notes:
 // -"N" is the number of points in either point cloud.
-// -"double const* const*" is the type of array for storing coordinates
-//   in this example (however you can use vectors or fixed sized arrays).
+// -"double const* const*" is the type of array for storing coordinates in this
+//   example.  However you can use vectors or fixed sized arrays. For example:
+//  Superpose3D<double, vector<vector<double>>, vector<double>> superposer(N,w);
 // -"double const*" is the type of array for storing the weights in this
-//    example.  If you are content to assign equal weight to each point, you
-//    can omit the 3rd template argument and also omit "w" from the constructor:
-// Superpose3D<double, double const* const*> superposer(N);
+//   example.  If you are content to assign equal weight to each point, you
+//   can omit the 3rd template argument and also omit "w" from the constructor.
+//   (Most users will use it this way.)  In that case instantiate it this way:
+//  Superpose3D<double, double const* const*> superposer(N);
 
 // Calculate the optimal supperposition between the two point clouds (X and x)
 
