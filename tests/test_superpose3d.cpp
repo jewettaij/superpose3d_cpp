@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     double w_norm2 = 0.0;
     for (int i = 0; i < n_points; i++) {
       w[i] = gaussian_distribution(rand_generator);
-      w_norm2 = w[i]*w[i];
+      w_norm2 += w[i]*w[i];
     }
     for (int i = 0; i < n_points; i++)
       w[i] = w[i]*w[i] / w_norm2;

@@ -42,10 +42,10 @@ scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 The coordinate arrays (*X<sub>ni</sub>* and *x<sub>ni</sub>*)
 can be implemented as T\*\* (pointer-to-pointer),
 vector\<vector\<T\>\>&, fixed-size arrays,
-or any other C or C++ object which supports double-indexing.
+or any other C or C++ object which supports \[\]\[\].
 (Here **T** is any real numeric type.  Complex numbers are not supported.)
-Likewise, the weights (*w*, if specified) can be implemented as C-style arrays
-std::vectors or any other C++ container supporting indexing.
+Likewise, the weights (*w*, if specified) can be implemented as arrays
+or any other C++ container supporting \[\].
 
 
 
