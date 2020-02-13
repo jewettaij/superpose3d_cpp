@@ -9,12 +9,9 @@ using namespace superpose3d;
 
 
 int main(int argc, char **argv) {
-  double **X; //the immobile point cloud (as a pointer->pointer)
-  double **x; //the mobile point cloud (as a pointer->pointer)
-    // Now apply this transformation to the new coordinates
-    // and recalculate the RMSD manually (by comparing coordinate sets).
-    // Check to see if the RMSD computed by two different methods agrees.
-  double **xprime;
+  double **X; //the immobile point cloud
+  double **x; //the mobile point cloud
+  double **xprime; //the mobile point cloud after transformations were applied
   double *w;  //weights to apply to each point when calculating RMSD
 
   int n_points = 4;
@@ -24,13 +21,14 @@ int main(int argc, char **argv) {
   if (argc > 2)
     n_point_clouds = atoi(argv[2]);
 
-  //Superpose3D<double,double const*const*,double const*> s(n_points,weights);
+  // Superpose3D<double,double const*const*,double const*> s(n_points,weights);
   Superpose3D<double, double const* const*> superposer(n_points);
-  //Now test the copy constructor and = operator
+  // Now test the copy constructor and = operator
   Superpose3D<double, double const* const*> superposer_cpy(superposer);
   Superpose3D<double, double const* const*> su = superposer_cpy;
-  //Test SetNumPoints()
+  // Test SetNumPoints()
   su.SetNumPoints(n_points);
+
   w = new double [n_points];
   for (int i=0; i < n_points; i++)
     w[i] = 1.0 / n_points;
@@ -109,7 +107,11 @@ int main(int argc, char **argv) {
       }
     }
 
-    // Now apply this transformation to the mobile point cloud.Save in"aaxprime"
+    // Now apply this transformation to the mobile point cloud, save the
+    // new coordinates in "xprime".  Then calculate the RMSD by summing the
+    // (squared) distances between points in "X" and points in "xprime".
+    // Then compare this RMSD with the rmsd calculated by Superpose().
+    // They should agree.  First store the new coordinates in "xprime":
     for (size_t n = 0; n < n_points; n++) {
       for (int i = 0; i < 3; i++) {
         xprime[n][i] = 0.0;
@@ -118,11 +120,8 @@ int main(int argc, char **argv) {
         xprime[n][i] += su.T[i];
       }
     }
-
-    //Manually calculate the sum-squared distance between points in the original
-    //point cloud, and the mobile point cloud (after transformation applied).
+    // Now calculate the RMSD beween X and xprime
     double RMSD = 0.0;
-
     double sum_w = 0.0;
     for (size_t n = 0; n < n_points; n++)
       sum_w += w[n];
@@ -132,8 +131,8 @@ int main(int argc, char **argv) {
                       SQR(X[n][2] - xprime[n][2]));
     RMSD = sqrt(RMSD / sum_w);
 
-    // Compare the manual method of computing RMSD with the
-    // prediction from Superpose3d::Superpose() (currently stored in "rmsd")
+    // Compare this (direct) method for computing RMSD with the prediction
+    // from Superpose3d::Superpose() (which is currently stored in "rmsd")
     assert(abs(RMSD - rmsd) < 1.0e-6);
 
   } // for (i_cl = 0; i_cl < n_point_clouds; i_cl++)

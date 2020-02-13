@@ -56,48 +56,51 @@ or any other C++ container supporting \[\].
 using namespace superpose3d;
 
 // ...
+int N = 14793; // the number of points in each cloud
+double **X;    // 1st point cloud (note: use "double **X" not "double (*X)[3]")
+double **x;    // 2nd point cloud (the mobile point cloud)
 
-double **X;   // 1st point cloud (note: use "double **X" not "double (*X)[3]")
-double **x;   // 2nd point cloud (the mobile point cloud)
-double *w;    // optional weights used in calculation of RMSD
-
-// Allocate space for X and x, and load their coordinates (omitted)
-// ...
+// Allocate space for X and x, and load their coordinates (omitted) ...
 
 // Create an instance of the "Superpose3D" class.
 
-Superpose3D<double, double const* const*, double const*> superposer(N, w);
+Superpose3D<double, double **> superposer(N);
 
+// "double **" is the type of array for storing coordinates in this example.
+//  (If the arrays are read-only, then you can use "double const* const*".)
+//  You can also use vectors or other objects which support [][]. For example:
+// Superpose3D<double, vector<vector<double>>&> superposer(N);
 // This will allocate memory to store temporary arrays used later.
 // Once created, it can be used multiple times on different point clouds of the
 // same size (without incurring the cost of memory allocation on the heap).
-// Notes:
-// -"N" is the number of points in either point cloud.
-// -"double const* const*" is the type of array for storing coordinates in this
-//   example.  However you can use vectors or fixed sized arrays. For example:
-//  Superpose3D<double, vector<vector<double>>, vector<double>> superposer(N,w);
-// -"double const*" is the type of array for storing the weights in this
-//   example.  If you are content to assign equal weight to each point, you
-//   can omit the 3rd template argument and also omit "w" from the constructor.
-//   (Most users will use it this way.)  In that case instantiate it this way:
-//  Superpose3D<double, double const* const*> superposer(N);
 
 // Calculate the optimal supperposition between the two point clouds (X and x)
 
-double rmsd =
-  superposer.Superpose(X, x);
+double rmsd = superposer.Superpose(X, x);
 
 // Note: The optimal rotation, translation, and scale factor will be stored in
 //       superposer.R, superposer.T, and superposer.c, respectively.
 ```
 *(A complete working example can be found [here](tests/test_superpose3d.cpp).)*
 
-Each point in the point cloud will be given equal weights when calculating RMSD.
-If you want to specify the weights (*w<sub>n</sub>* in the formula above),
-then use:
+By default point in the point cloud will be given equal weights when
+calculating RMSD.  If you want to specify different weights for each point
+(ie. *w<sub>n</sub>* in the formula above), then see the following example:
+
+## Example using non-uniform weights
+
+```cpp
+// ...
+
+double *w;    // optional: weights used in calculation of RMSD
+// Fill the "w" array (omitted)
+
+Superpose3D<double, double **, double*> superposer(N, w);
+double rmsd = superposer.Superpose(X, x);
+// "double *" is the type of array for the weights in this example ("w").
+// (For read-only arrays, you can use use "double const*".)
 ```
-superposer.Superpose(X, x, w);
-```
+
 This function implements a more general variant of the method from this paper:
 R. Diamond, (1988)
 "A Note on the Rotational Superposition Problem",
