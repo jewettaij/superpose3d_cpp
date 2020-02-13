@@ -11,12 +11,12 @@ superpose3d_cpp
 Note: There is a ***python version*** of this repository
 [***here***](https://github.com/jewettaij/superpose3d).
 
-**superpose3d_cpp** is a header-only C++ library containing the definition
-of a class whose single public member function, *Superpose()*,
-takes two N×3 arrays representing coordinates of points
-from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments.
-
-*Superpose3D::Superpose()* attempts to superimpose
+**superpose3d_cpp** contains a [header file](include/superpose3d.hpp)
+containing the definition of a class, *Superpose3d*.  It's single public member
+function, *Superpose()*, takes two N×3 arrays representing coordinates of points
+from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments,
+and attempts to superimpose them (treating them as rigid bodies).
+More specifically, *Superpose3D::Superpose()* attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
@@ -87,7 +87,7 @@ By default point in the point cloud will be given equal weights when
 calculating RMSD.  If you want to specify different weights for each point
 (ie. *w<sub>n</sub>* in the formula above), then see the following example:
 
-## Example using non-uniform weights
+#### Example using non-uniform weights
 
 ```cpp
 // ...
@@ -145,11 +145,12 @@ The performance of the algorithm is *O(N)*.
 For large *N*, the computation time required (per point in the cloud)
 is approximately 4.0-08 seconds.
 
-<sub>*(Details: This was measured on a single 1.7GHz i5-4210U CPU core.
+<sub>
+*(Details: This was measured on a single 1.7GHz i5-4210U CPU core.
 For this test, the [tests/test_superpose3d.cpp](tests/test_superpose3d.cpp)
-file was compiled using g++ with the "-Ofast" compiler flag, and then run
-with and without with the line invoking Superpose3D::Superpose() commented out.
-Time spent in Superpose() was inferred by subtracting these two times.)</sub>
+file was compiled using g++ with the "-Ofast" compiler flag, and then run with
+and without with the line invoking Superpose3D::Superpose() commented out.)*
+</sub>
 
 ## Development Status: *Stable*
 
