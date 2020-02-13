@@ -57,7 +57,7 @@ private:
 public:
   // The next 3 data members store the rotation, translation and scale
   // after optimal superposition
-  Scalar **R;  //!< store optimal rotation here
+  Scalar **R;  //!< store optimal rotation here (this is a 3x3 array).
   Scalar T[3]; //!< store optimal translation here
   Scalar c;  //!< store optimal scale (typically 1 unless requested by the user)
 
@@ -81,7 +81,7 @@ public:
   /// (optionally) rescale operations are applied to the coordinates in the
   /// "aaXm_orig" array in order to minimize the root-mean-squared-distance
   /// (RMSD) between them, where RMSD is defined as:
-  ///    sqrt((Sum_i  w_i * |X_i - (Sum_jc*R_ij*x_j + T_i))|^2) / (Sum_j w_j))
+  /// sqrt((Σ_n w[n]*Σ_i |X[n][i] - (Σ_j c*R[i][j]*x[n][j]+T[i])|^2)/(Σ_n w[n]))
   /// The "X_i" and "x_i" are coordinates of the ith fixed and mobile point,
   /// (represented by "aaXf" and "aaXm" below), and "w_i" are weights
   /// (represented by "aWeights", which, if omitted, are assumed to be equal).
