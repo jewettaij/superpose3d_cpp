@@ -1,3 +1,31 @@
+/// @file     test_superpose3d.hpp
+/// @brief    Generate pairs of random point clouds and apply
+///           Superpose3d::Superpose() on them to measure the RMSD between them.
+///           Check to make sure that the RMSD predicted by Superpose() agrees
+///           with the RMSD calculated by measuring the distance between the
+///           two point clouds after optimal rotation translation and scaling
+///           was applied.  If requested, do this many times.
+/// @code
+/// Usage:
+///
+///   test_superpose Npoints [Ntests]
+///
+/// Arguments:
+///   Npoints = the number of points in each point cloud.
+///   Ntests  = (optional) the number of times to generate random point clouds
+///             and repeat the test (=1 by default).
+/// @endcode
+/// @note     This program is not ideal for benchmarking because the
+///           computation time is dominated by the time needed to generate the
+///           random coordinates. (Approximately 88% of the computation time
+///           is spent this way for large point clouds.  In other words,
+///           Superpose3d::Superpose() is about 7 times faster than the time
+///           needed to generate random coordinates used to test the algorithm.
+///           To measure computation time, run the program with and without
+///           invoking Superpose3d::Superpose().
+/// @author   Andrew Jewett
+/// @license  MIT
+
 #include <iostream>
 #include <cmath>
 #include <chrono>
@@ -62,7 +90,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < n_points; i++)
       w[i] = w[i]*w[i] / w_norm2;
     su.SetWeights(w); // inform su that we want to use these weights
-  
+
     // ----------------- main code -----------------
 
     // Now superimpose the two point clouds:
@@ -96,7 +124,6 @@ int main(int argc, char **argv) {
         }
       }
       cout << "Optimal Scale factor, C = " << su.c << "\n";
-      cout << "Optimal superposition rmsd = " << rmsd << "\n";
       cout << "optimal translation, Ti =\n"
            << su.T[0] << " " << su.T[1] << " " << su.T[2] << "\n";
       cout << "Optimal Rotation, Rij = \n";
@@ -105,6 +132,7 @@ int main(int argc, char **argv) {
           cout << su.R[iy][ix] << " ";
         cout << "\n";
       }
+      cout << "Optimal superposition rmsd = " << rmsd << " (predicted)\n";
     }
 
     // Now apply this transformation to the mobile point cloud, save the
@@ -130,6 +158,8 @@ int main(int argc, char **argv) {
                       SQR(X[n][1] - xprime[n][1]) +
                       SQR(X[n][2] - xprime[n][2]));
     RMSD = sqrt(RMSD / sum_w);
+    if (n_point_clouds == 1)
+      cout << "        superposition rmsd = " << RMSD << " (measured)\n";
 
     // Compare this (direct) method for computing RMSD with the prediction
     // from Superpose3d::Superpose() (which is currently stored in "rmsd")

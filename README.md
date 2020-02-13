@@ -139,7 +139,23 @@ subdirectory to a location in your
 [include path](https://www.rapidtables.com/code/linux/gcc/gcc-i.html).
 *(Both repositories share the same license.)*
 
-## Development Status: *Beta*
+## Benchmarking
+
+The performance of the algorithm is *O(N)*.
+For large *N*, the computation time required (per point in the cloud)
+is approximately 4.0-08 seconds.
+
+<sub>*(Details: This was measured on a single 1.7GHz i5-4210U CPU core.
+For this test, the [tests/test_superpose3d.cpp](tests/test_superpose3d.cpp)
+file was compiled using g++ with the "-Ofast" compiler flag, and then run
+with and without with the line invoking Superpose3D::Superpose() commented out.
+Time spent in Superpose() was inferred by subtracting these two times.)</sub>
+
+## Development Status: *Stable*
+
+The code in [superpose3d.hpp](include/superpose3d.hpp) has been
+[tested](.travis.yml) for accuracy, coverage, memory safety and speed
+using thousands of large randomly generated point clouds.
 
 ## License
 

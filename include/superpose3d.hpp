@@ -139,6 +139,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
 {
   assert(aaXf && aaXm);
   assert(aaXf_shifted && aaXm_shifted);
+  assert(aWeights);
   assert(R && T);
 
   // Find the center of mass of each object:
@@ -146,9 +147,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   Scalar aCenter_m[3] = {0.0, 0.0, 0.0};
   Scalar sum_weights = 0.0;
   for (size_t n=0; n < N; n++) {
-    Scalar weight = 1.0;
-    if (aWeights)
-      weight = aWeights[n];
+    Scalar weight = aWeights[n];
     for (int d=0; d < 3; d++) {
       aCenter_f[d] += aaXf[n][d]*weight;
       aCenter_m[d] += aaXm[n][d]*weight;
@@ -170,37 +169,6 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
     }
   }
 
-  Scalar Rgf=0.0; // <--the RMS size of the particles in the frozen object
-  Scalar Rgm=0.0; // <--the RMS size of the particles in the mobile object
-
-  if (allow_rescale) {
-    // Optional: I have a vague hunch that if the difference in size between
-    // the two point clouds is large, then we can improve numerical stability
-    // by rescaling the coordinates initially to make sure they have the same
-    // approximate scale before we attempt to find the optimal rotation.
-    // Perhaps I'm wrong, but it does not hurt.  (To disable, set Rgf=Rgm=1.0)
-    // Note: Rgm/Rgf is NOT the optimal scale factor.
-    //       (That must be determined later.)
-    for (size_t n=0; n < N; n++) {
-      Scalar weight = 1.0;
-      if (aWeights)
-        weight = aWeights[n];
-      for (int d=0; d < 3; d++) {
-        Rgf += weight * SQR(aaXf_shifted[n][d]);
-        Rgm += weight * SQR(aaXm_shifted[n][d]);
-      }
-    }
-    Rgf = sqrt(Rgf / sum_weights);
-    Rgm = sqrt(Rgm / sum_weights);
-
-    for (size_t n=0; n < N; n++) {
-      for (int d=0; d < 3; d++) {
-        aaXf_shifted[n][d] /= Rgf;
-        aaXm_shifted[n][d] /= Rgm;
-      }
-    }
-  } //if (allow_rescale)
-
   // Calculate the "M" array from the Diamond paper (equation 16)
   Scalar M[3][3];
   for (int i=0; i < 3; i++)
@@ -208,9 +176,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
       M[i][j] = 0.0;
 
   for (size_t n=0; n < N; n++) {
-    Scalar weight = 1.0;
-    if (aWeights)
-      weight = aWeights[n];
+    Scalar weight = aWeights[n];
     for (int i=0; i < 3; i++) {
       for (int j=0; j < 3; j++) {
         M[i][j] += weight * aaXm_shifted[n][i] * aaXf_shifted[n][j];
@@ -293,9 +259,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
     Scalar Waxaixai = 0.0;
     Scalar WaxaiXai = 0.0;
     for (size_t a=0; a < N; a++) {
-      Scalar weight = 1.0;
-      if (aWeights)
-        weight = aWeights[a];
+      Scalar weight = aWeights[a];
       for (int i=0; i < 3; i++) {
         Waxaixai += weight * aaXm_shifted[a][i] * aaXm_shifted[a][i];
         WaxaiXai += weight * aaXm_shifted[a][i] * aaXf_shifted[a][i];
@@ -303,28 +267,13 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
     }
     c = (WaxaiXai + pPp) / Waxaixai;
 
-    // Recall that we previously divided the two sets of coordinates by Rgm
-    // and Rgf respectively. (I thought it might improve numerical stability)
-    // Before returning "c" to the caller, we need to incorporate those
-    // factors into "c" as well.
-    c *= Rgf / Rgm;
-    pPp *= Rgf * Rgm;
-        // And, lastly, undo this before calculating E0 below
-    for (size_t n=0; n < N; n++) {
-      for (int d=0; d < 3; d++) {
-        aaXf_shifted[n][d] *= Rgf;
-        aaXm_shifted[n][d] *= Rgm;
-      }
-    }
   } // if (allow_rescale)
 
   // Finally compute the RMSD between the two coordinate sets:
   // First compute E0 from equation 24 of the paper
   Scalar E0 = 0.0;
   for (size_t n=0; n < N; n++) {
-    Scalar weight = 1.0;
-    if (aWeights)
-      weight = aWeights[n];
+    Scalar weight = aWeights[n];
     for (int d=0; d < 3; d++)
       // (remember to include the scale factor "c" that we inserted)
       E0 += weight * (SQR(aaXf_shifted[n][d] - c*aaXm_shifted[n][d]));
