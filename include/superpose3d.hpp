@@ -8,34 +8,16 @@
 #define _SUPERPOSE3D_HPP
 
 
+#include "matrix_alloc.hpp" //convenient allocation function for 2D arrays
+#include "peigencalc.hpp"   //calculate eigenvalues and eigenvectors
 
-#include "matrix_alloc.hpp"
-
-// Note: The Superpose3D::Superpose() function need to calculate the eigenvalues
-// and eigenvectors of a 4x4 matrix.  Two methods: Lanczos or Jacobi:
-#ifdef SUPERPOSE3D_USES_LANCZOS
-// If you select this version, you must download "lambda_lanczos.hpp" from
-// https://github.com/mrcdr/lambda-lanczos.  The "peigencalc_lanczos.hpp"
-// file should be located in a different directory with this repository.
-#include "peigencalc_lanczos.hpp"
-#else
-// DEFAULT:
-// The ordinary Jacobi diagonalization code turned out to be much faster
-// than LambdaLanczos for 4x4 matrices, so we use this method by default.
-// If you select this version, you must download "jacobi.hpp" and
-// "matrix_alloc.hpp" from https://github.com/jewettaij/jacobi_pd
-#include "peigencalc.hpp"
-#endif
 
 
 namespace superpose3d {
 
-using namespace matrix_alloc;
-
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
 // -----------------------------------------------------------
-
 
 /// @brief  Superpose3d is a class with only one important member function
 ///         Superpose().  It is useful for repeatedly calculating the optimal
@@ -50,7 +32,6 @@ private:
   Scalar *aWeights;      //weights applied to points when computing RMSD
   PEigenCalculator<Scalar, Scalar*, Scalar const* const*>
        eigen_calc; // calculates principal eigenvalues
-  // (contiguous) preallocated space for 2D arrays:
   Scalar **aaXf_shifted; //preallocated space for fixed point cloud (Nx3 array)
   Scalar **aaXm_shifted; //preallocated space for mobile point cloud (Nx3 array)
 
@@ -354,6 +335,8 @@ Init() {
   aaXm_shifted = nullptr;
 }
 
+// memory management:
+
 template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Alloc(size_t N) {
@@ -361,23 +344,25 @@ Alloc(size_t N) {
   aWeights = new Scalar [N];
   for (size_t i = 0; i < N; i++)
     aWeights[i] = 1.0 / N;
-  Alloc2D(3, 3, &R);
-  Alloc2D(N, 3, &aaXf_shifted);
-  Alloc2D(N, 3, &aaXm_shifted);
+  matrix_alloc::Alloc2D(3, 3, &R);
+  matrix_alloc::Alloc2D(N, 3, &aaXf_shifted);
+  matrix_alloc::Alloc2D(N, 3, &aaXm_shifted);
 }
 
 template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Dealloc() {
   if (R)
-    Dealloc2D(&R);
+    matrix_alloc::Dealloc2D(&R);
   if (aWeights)
     delete [] aWeights;
   if (aaXf_shifted)
-    Dealloc2D(&aaXf_shifted);
+    matrix_alloc::Dealloc2D(&aaXf_shifted);
   if (aaXm_shifted)
-    Dealloc2D(&aaXm_shifted);
+    matrix_alloc::Dealloc2D(&aaXm_shifted);
 }
+
+// memory management: copy and move constructor, swap, and assignment operator:
 
 template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::

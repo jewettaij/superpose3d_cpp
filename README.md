@@ -69,9 +69,9 @@ Note that if you enable scale transformations, you should be wary if the functio
 using namespace superpose3d;
 
 // ...
-int N = 14793; // the number of points in each cloud
-double **X;    // 1st point cloud (note: use "double **X" not "double (*X)[3]")
-double **x;    // 2nd point cloud (the mobile point cloud)
+int N = 147913; // the number of points in each cloud
+double **X;     // 1st point cloud (the frozen point cloud)
+double **x;     // 2nd point cloud (the mobile point cloud)
 
 // Allocate space for X and x, and load their coordinates (omitted) ...
 
