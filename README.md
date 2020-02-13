@@ -47,6 +47,19 @@ or any other C or C++ object which supports \[\]\[\].
 Likewise, the weights (*w*, if specified) can be implemented as arrays
 or any other C++ container supporting \[\].
 
+#### Algorithm
+
+This function implements a more general variant of the method from this paper:
+R. Diamond, (1988)
+"A Note on the Rotational Superposition Problem",
+ Acta Cryst. A44, pp. 211-216.
+
+This version has been augmented slightly to support scale transformations.
+(I.E. multiplication by scalars.  This can be useful for the registration
+of two different annotated volumetric 3-D images of the same object taken
+at different magnifications.)
+
+Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
 
 
 ##  Example usage
@@ -83,6 +96,12 @@ double rmsd = superposer.Superpose(X, x);
 ```
 *(A complete working example can be found [here](tests/test_superpose3d.cpp).)*
 
+By default scale transformations are disabled.  (By default *c=1*.)
+If you want to allow scale transformations, then use:
+```
+superposer.Superpose(X, x, true);
+```
+
 By default point in the point cloud will be given equal weights when
 calculating RMSD.  If you want to specify different weights for each point
 (ie. *w<sub>n</sub>* in the formula above), then see the following example:
@@ -100,24 +119,6 @@ double rmsd = superposer.Superpose(X, x);
 // "double *" is the type of array for the weights in this example ("w").
 // (For read-only arrays, you can use use "double const*".)
 ```
-
-This function implements a more general variant of the method from this paper:
-R. Diamond, (1988)
-"A Note on the Rotational Superposition Problem",
- Acta Cryst. A44, pp. 211-216.
-
-This version has been augmented slightly to support scale transformations.
-(I.E. multiplication by scalars.  This can be useful for the registration
-of two different annotated volumetric 3-D images of the same object taken
-at different magnifications.)
-
-By default scale transformations are disabled.  (By default *c=1*.)
-If you want to allow scale transformations, then use:
-```
-superposer.Superpose(X, x, w, true);
-```
-
-Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
 
 
 ## Downloading
