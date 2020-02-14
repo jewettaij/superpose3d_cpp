@@ -116,7 +116,7 @@ double *w;    // optional: weights used in calculation of RMSD
 
 Superpose3D<double, double **, double*> superposer(N, w);
 double rmsd = superposer.Superpose(X, x);
-// "double *" is the type of array for the weights in this example ("w").
+// "double*" is the type of array for the weights in this example ("w").
 // (For read-only arrays, you can use use "double const*".)
 ```
 
