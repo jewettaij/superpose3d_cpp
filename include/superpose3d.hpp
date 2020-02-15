@@ -260,7 +260,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
       E0 += weight * (SQR(aaXf_shifted[n][d] - c*aaXm_shifted[n][d]));
   }
   Scalar sum_sqr_dist = E0 - c*2.0*pPp;
-  if (sum_sqr_dist < 0.0)
+  if (sum_sqr_dist < 0.0) //(edge case due to rounding error)
     sum_sqr_dist = 0.0;
   Scalar rmsd = sqrt(sum_sqr_dist/sum_weights);
 
