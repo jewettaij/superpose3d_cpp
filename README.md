@@ -70,8 +70,8 @@ using namespace superpose3d;
 
 // ...
 int N = 147913; // the number of points in each cloud
-double **X;     // 1st point cloud (the frozen point cloud)
-double **x;     // 2nd point cloud (the mobile point cloud)
+double **X;     // <-- Nx3 array of coordinates for the "frozen" point cloud
+double **x;     // <-- Nx3 array of coordinates for the "mobile" point cloud
 
 // Allocate space for X and x, and load their coordinates (omitted) ...
 
