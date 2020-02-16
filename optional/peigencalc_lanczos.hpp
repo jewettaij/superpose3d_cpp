@@ -1,4 +1,4 @@
-/// @file     peigencalc.hpp
+/// @file     peigencalc_lanczos.hpp
 /// @brief    Provide a means to calculate the largest (or smallest) eigenvalue
 ///           (and corresponding eigenvector) of a small dense square matrix.
 /// @author   Andrew Jewett
@@ -20,7 +20,7 @@ using std::vector;
 /// (which is more general and can work with large sparse matrices.  You can
 ///  download that code here: https://github.com/mrcdr/lambda-lanczos)
 
-template<typename Scalar>
+template<typename Scalar, typename Vector, typename ConstMatrix>
 class PEigenCalculator
 {
   size_t n;            // the size of the matrix
@@ -40,20 +40,19 @@ public:
   /// @return Return the principal eigenvalue of the matrix.
   ///         If you want the eigenvector, pass a non-null "evector" argument.
   Scalar
-  PrincipalEigen(Scalar const* const *matrix, //!< the input patrix
-                 Scalar *evector=nullptr, //!< optional: eigenvector stored here
-                 bool find_max=false);    //!< want the max or min eigenvalue?
+  PrincipalEigen(ConstMatrix matrix,   //!< the input patrix
+                 Vector evector,       //!< the eigenvector is stored here
+                 bool find_max=false); //!< want the max or min eigenvalue?
 
 }; // class PEigenCalculator
 
 
 
 // -------- IMPLEMENTATION --------
-
-template<typename Scalar>
-Scalar PEigenCalculator<Scalar>::
-  PrincipalEigen(Scalar const* const *matrix,
-                 Scalar *eigenvector,
+template<typename Scalar, typename Vector, typename ConstMatrix>
+Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
+  PrincipalEigen(ConstMatrix matrix,
+                 Vector eigenvector,
                  bool find_max)
 {
   assert(n > 0);

@@ -53,7 +53,7 @@ public:
   ///         If you want the eigenvector, pass a non-null "evector" argument.
   Scalar
   PrincipalEigen(ConstMatrix matrix,   //!< the input patrix
-                 Vector evector,       //!< optional: eigenvector stored here
+                 Vector evector,       //!< the eigenvector is stored here
                  bool find_max=false); //!< want the max or min eigenvalue?
 
 }; // class PEigenCalculator

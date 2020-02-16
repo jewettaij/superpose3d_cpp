@@ -62,11 +62,11 @@ int main(int argc, char **argv) {
     w[i] = 1.0 / n_points;
 
   // Allocate the immobile point cloud array (X) and fill it with coordinates
-  Alloc2D(n_points, 3, &X);
+  matrix_alloc::Alloc2D(n_points, 3, &X);
   // Allocate the mobile point cloud array (x) and fill it with coordinates
-  Alloc2D(n_points, 3, &x);
+  matrix_alloc::Alloc2D(n_points, 3, &x);
   // Allocate space for the transformed mobile point cloud
-  Alloc2D(n_points, 3, &xprime);
+  matrix_alloc::Alloc2D(n_points, 3, &xprime);
 
   int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine rand_generator(seed);
@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
 
   } // for (i_cl = 0; i_cl < n_point_clouds; i_cl++)
 
-  Dealloc2D(&xprime);
-  Dealloc2D(&X);
-  Dealloc2D(&x);
+  matrix_alloc::Dealloc2D(&xprime);
+  matrix_alloc::Dealloc2D(&X);
+  matrix_alloc::Dealloc2D(&x);
   delete [] w;
 
   cout << "\n" << "test passed." << endl;
