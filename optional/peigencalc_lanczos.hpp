@@ -73,14 +73,12 @@ Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
   // (The next two lines do all the hard work.)
   lambda_lanczos::LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
   ll_engine.init_vector = init_vec;
+
+  // This line does all of the hard work:
   size_t itern = ll_engine.run(eval, evec);
 
-  if (eigenvector) {
-    // If the caller requested the eigenvector as well, then
-    // return it to the caller by copying the data into eigenvector[].
-    for (int i = 0; i < n; i++)
-      eigenvector[i] = evec[i];
-  }
+  for (int i = 0; i < n; i++)
+    eigenvector[i] = evec[i];
 
   return eval;
 }

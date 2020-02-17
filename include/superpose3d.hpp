@@ -20,7 +20,7 @@ namespace superpose3d {
 // -----------------------------------------------------------
 
 /// @brief  Superpose3d is a class with only one important member function
-///         Superpose().  It is useful for repeatedly calculating the optimal
+///         Superpose().  It is useful for calculating the optimal
 ///         superposition (rotations, translations, and scale transformations)
 ///         between two point clouds of the same size.
 template<typename Scalar,
@@ -56,25 +56,36 @@ public:
   /// @brief specify the weight applied to each point when computing RMSD
   void SetWeights(ConstArray aWeights);
 
-  /// @brief
-  /// Takes two lists of xyz coordinates (of the same length, specified earlier)
-  /// and attempts to superimpose them using rotations, translations, and 
-  /// (optionally) rescale operations are applied to the coordinates in the
-  /// "aaXm_orig" array in order to minimize the root-mean-squared-distance
-  /// (RMSD) between them, where RMSD is defined as:
+  /// @brief Use rigid-body transformations (rotations, translations, and
+  ///         optionally scale transformations) to superimpose two point clouds.
+  ///
+  /// @details
+  /// This function takes two lists of xyz coordinates (of the same length) and 
+  /// attempts to superimpose them using rotations, translations, and 
+  /// (optionally) scale transformations.  These transformations are applied to
+  /// to the coordinates in the "aaXm_orig" array (the "mobile" point cloud)
+  /// in order to minimize the root-mean-squared-distance (RMSD) between the
+  /// corresponding points in each cloud, where RMSD is defined as:
+  ///
+  /// @verbatim
   /// sqrt((Σ_n w[n]*Σ_i |X[n][i] - (Σ_j c*R[i][j]*x[n][j]+T[i])|^2)/(Σ_n w[n]))
-  /// The "X_i" and "x_i" are coordinates of the ith fixed and mobile point,
-  /// (represented by "aaXf" and "aaXm" below), and "w_i" are weights
-  /// (represented by "aWeights", which, if omitted, are assumed to be equal).
+  /// @endverbatim
+  ///
+  /// In this formula, the "X_i" and "x_i" are coordinates of the ith fixed and
+  /// mobile point clouds (represented by "aaXf" and "aaXm" in the code below)
+  /// and "w_i" are optional weights (represented by "aWeights" in the code).
   /// This function implements a more general variant of the method from:
-  /// R. Diamond, (1988)
-  /// "A Note on the Rotational Superposition Problem", 
+  /// @verbatim
+  /// R. Diamond, (1988) "A Note on the Rotational Superposition Problem", 
   /// Acta Cryst. A44, pp. 211-216
-  /// This version has been augmented slightly.  The version in the original 
-  /// paper only considers rotation and translation and does not allow the 
-  /// coordinates of either object to be rescaled (multiplication by a scalar).
-  /// You can enable the ability to rescale the coordinates by setting
-  /// "allow_rescale" to true.  (By default, this feature is disabled.)
+  /// @endverbatim
+  ///
+  /// @note:
+  /// This code has been augmented with a new feature.  The version in the
+  /// original paper only considers rotation and translation and does not allow
+  /// coordinates of either cloud to be rescaled (multiplied by a scalar).
+  /// To enable the ability to rescale the coordinates, set allow_rescale=true.
+  /// (By default, this feature is disabled.)
   ///
   /// @returns
   /// The RMSD between the 2 pointclouds after optimal rotation, translation
@@ -272,7 +283,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   // x_i' = Sum_j(c*R_ij*x_j) + T_i
   //      = Xcm_i + c*R_ij*(x_j - xcm_j)
   //  and Xcm and xcm = center_of_mass for the frozen and mobile point clouds
-  //                  = aCenter_f[]       and       aCenter_m[],  respectively
+  //
   // Hence:
   //  T_i = Xcm_i - Sum_j c*R_ij*xcm_j
   // In the code, Xcm_i is represented by "aCenter_f[i]"
