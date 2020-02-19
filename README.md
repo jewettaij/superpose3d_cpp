@@ -21,30 +21,29 @@ them using **rotations**, **translations**, and (optionally) **scale**
 transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
 
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
-
-...where *w<sub>n</sub>* is the (optional) weight assigned to the n'th point in the two clouds.  If the weights (*w<sub>n</sub>*) are omitted, then equal weights are used.  In that case:
-
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
-
 ...where:
 ```
    T = a translation vector (a 1-D array containing x,y,z displacements),
    R = a rotation matrix    (a 3x3 array whose determinant = 1),
    c = a scale factor       (a number, optional, 1 by default)
 ```
-
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in data members named *T*, *R*, and *c*, respectively.
 (*T* is implementad as a C-style array and
  *R* is implemented as a pointer-to-pointer.)
+
+A *weighted* version of the RMSD minimization algorithm is also available
+if the caller supplies an extra argument specifying the weight of every
+point in the cloud (*w<sub>n</sub>*).  In that case, RMSD is defined as:
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
 
 The coordinate arrays (*X<sub>ni</sub>* and *x<sub>ni</sub>*)
 can be implemented as T\*\* (pointer-to-pointer),
 vector\<vector\<T\>\>&, fixed-size arrays,
 or any other C or C++ object which supports \[\]\[\].
 (Here **T** is any real numeric type.  Complex numbers are not supported.)
-Likewise, the weights (*w*, if specified) can be implemented as arrays
+Similarly, the weights (*w*, if specified) can be implemented as arrays
 or any other C++ container supporting \[\].
 
 #### Algorithm
