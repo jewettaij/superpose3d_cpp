@@ -7,8 +7,6 @@
 #define _PEIGENCALC_HPP
 
 #include <vector>
-using std::vector;
-
 
 #include "lambda_lanczos.hpp"
 
@@ -23,8 +21,8 @@ using std::vector;
 template<typename Scalar, typename Vector, typename ConstMatrix>
 class PEigenCalculator
 {
-  size_t n;            // the size of the matrix
-  vector<Scalar> evec; // preallocated vector (lambda_lanzcos does not use ptrs)
+  size_t n;                 // the size of the matrix
+  std::vector<Scalar> evec; // preallocated vector
 
 public:
   void SetSize(int matrix_size) {
@@ -56,14 +54,14 @@ Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
                  bool find_max)
 {
   assert(n > 0);
-  auto matmul = [&](const vector<Scalar>& in, vector<Scalar>& out) {
+  auto matmul = [&](const std::vector<Scalar>& in, std::vector<Scalar>& out) {
     for(int i = 0; i < n; i++) {
       for(int j = 0; j < n; j++) {
         out[i] += matrix[i][j]*in[j];
       }
     } 
   };
-  auto init_vec = [&](vector<Scalar>& vec) {
+  auto init_vec = [&](std::vector<Scalar>& vec) {
     for(int i = 0; i < n; i++)
       vec[i] = 0.0;
     vec[0] = 1.0;

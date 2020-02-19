@@ -80,8 +80,8 @@ double **x;     // <-- Nx3 array of coordinates for the "mobile" point cloud
 Superpose3D<double, double **> superposer(N);
 
 // "double **" is the type of array for storing coordinates in this example.
-//  (If the arrays are read-only, then you can use "double const* const*".)
-//  You can also use vectors or other objects which support [][]. For example:
+// (If the arrays are read-only, then you can use "double const* const*".)
+// You can also use vectors or other objects which support [][]. For example:
 // Superpose3D<double, vector<vector<double>>&> superposer(N);
 // This will allocate memory to store temporary arrays used later.
 // Once created, it can be used multiple times on different point clouds of the
@@ -144,7 +144,7 @@ subdirectory to a location in your
 
 The performance of the algorithm is *O(N)*.
 For large *N*, the computation time required (per point in the cloud)
-is approximately 4.0-08 seconds.
+is approximately 4.0e-08 seconds.
 
 <sub>
 (Details: This was measured on a single 1.7GHz i5-4210U CPU core.
