@@ -23,7 +23,7 @@ between corresponding points from either point cloud, where RMSD is defined as:
 
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
 
-If *w<sub>n</sub>* are omitted, then equal weights are used.  In that case:
+...where *w<sub>n</sub>* is the (optional) weight assigned to the n'th point in the two clouds.  If the *w<sub>n</sub>* are omitted, then equal weights are used.  In that case:
 
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
 
