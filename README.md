@@ -30,9 +30,10 @@ between corresponding points from either point cloud, where RMSD is defined as:
    c = a scale factor       (a number, optional, 1 by default)
 ```
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
-scale factor are stored in data members named *T*, *R*, and *c*, respectively.
-(*T* is implementad as a C-style array and
- *R* is implemented as a pointer-to-pointer.)
+scale factor are stored in Superpose3D data members named
+*T*, *R*, and *c*, respectively.
+(*T* is implemented as a C-style array, and
+ *R* is implemented as a C-style 3x3 array in pointer-to-pointer format.)
 
 A *weighted* version of the RMSD minimization algorithm is also available
 if the caller supplies an extra argument specifying the weight of every
