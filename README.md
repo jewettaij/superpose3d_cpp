@@ -12,7 +12,7 @@ Note: There is a ***python version*** of this repository
 [***here***](https://github.com/jewettaij/superpose3d).
 
 **superpose3d_cpp** contains a [header file](include/superpose3d.hpp)
-containing the definition of a class, *Superpose3d*.  It's single public member
+containing the definition of a class, *Superpose3D*.  It's single public member
 function, *Superpose()*, takes two N×3 arrays representing coordinates of points
 from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments,
 and attempts to superimpose them (treating them as rigid bodies).
@@ -22,6 +22,7 @@ transformations in order to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
 
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{n}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
+
 ...where:
 ```
    T = a translation vector (a 1-D array containing x,y,z displacements),
