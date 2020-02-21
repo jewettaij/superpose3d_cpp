@@ -41,6 +41,10 @@ public:
   Scalar **R;  //!< store optimal rotation here (this is a 3x3 array).
   Scalar T[3]; //!< store optimal translation here
   Scalar c;  //!< store optimal scale (typically 1 unless requested by the user)
+  Scalar q[4]; //!< quaternion corresponding to the rotation stored in R.
+               //   The first entry of q is cos(θ/2).  The remaining 3 entries
+               //   of q are the axis of rotation (with length sin(θ/2)).
+               // (Note: This is not the same as "p" from Diamond's 1988 paper.)
 
   Superpose3D(size_t N = 0);  //!< N=number of points in both point clouds
 
@@ -217,8 +221,8 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   P[3][2] = V[2];
   P[3][3] = 0.0;
 
-  // The vector "p" will contain the optimal rotation (in quaternion format)
   Scalar p[4];
+  // The vector "p" will contain the optimal rotation (in quaternion format)
   Scalar eval_max = eigen_calc.PrincipalEigen(P, p, true);
 
   // Now normalize p
@@ -241,6 +245,11 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   R[2][1] = 2*(p[1]*p[2] + p[0]*p[3]);
   R[0][2] = 2*(p[0]*p[2] + p[1]*p[3]);
   R[2][0] = 2*(p[0]*p[2] - p[1]*p[3]);
+
+  q[0] = p[3];  // Note: The "p" variable is not a quaternion in the
+  q[1] = p[0];  //       conventional sense because its elements
+  q[2] = p[1];  //       are in the wrong order.  I correct for that here.
+  q[3] = p[2];  //       "q" is the quaternion correspond to rotation R.
 
   Scalar pPp = eval_max;
 

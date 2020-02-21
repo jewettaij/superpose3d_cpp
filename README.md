@@ -27,7 +27,7 @@ between corresponding points from either point cloud, where RMSD is defined as:
 ```
    T = a translation vector (a 1-D array containing x,y,z displacements),
    R = a rotation matrix    (a 3x3 array whose determinant = 1),
-   c = a scale factor       (a number, optional, 1 by default)
+   c = a scalar             (a number, optional, 1 by default)
 ```
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in Superpose3D data members named
@@ -35,7 +35,7 @@ scale factor are stored in Superpose3D data members named
 (*T* is implemented as a C-style array, and
  *R* is implemented as a C-style 3x3 array in pointer-to-pointer format.)
 
-A *weighted* version of the RMSD minimization algorithm is also available
+A weighted version of the RMSD minimization algorithm is also available
 if the caller supplies an extra argument specifying the weight of every
 point in the cloud (*w<sub>n</sub>*).  In that case, RMSD is defined as:
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
@@ -94,6 +94,7 @@ double rmsd = superposer.Superpose(X, x);
 
 // Note: The optimal rotation, translation, and scale factor will be stored in
 //       superposer.R, superposer.T, and superposer.c, respectively.
+//       (A quaternion describing the rotation is stored in superpose.p.)
 ```
 *(A complete working example can be found [here](tests/test_superpose3d.cpp).)*
 
@@ -103,6 +104,16 @@ If you want to allow scale transformations, then use:
 superposer.Superpose(X, x, true);
 ```
 
+#### Rotation angle, axis, and quaternion
+If the corresponding rotation angle and rotation axis are also needed, they
+can be inferred from the ***q*** data member ("*superposer.q*" in the
+example above). After invoking Superpose(), the *q* member will store the
+[quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
+The first element of *q* will store *cos(θ/2)* (where *θ* is the
+rotation angle).  The remaining 3 elements of *q* will store the
+axis of rotation (with length *sin(θ/2)*).
+
+#### Weighted RMSD
 By default point in the point cloud will be given equal weights when
 calculating RMSD.  If you want to specify different weights for each point
 (ie. *w<sub>n</sub>* in the formula above), then see the following example:
