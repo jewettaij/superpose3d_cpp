@@ -55,7 +55,7 @@ R. Diamond, (1988)
 "A Note on the Rotational Superposition Problem",
  Acta Cryst. A44, pp. 211-216.
 
-#### Scale transformations
+### Scale transformations
 
 This version has been augmented slightly to support scale transformations.
 (I.E. multiplication by scalars.  This can be useful for the registration
