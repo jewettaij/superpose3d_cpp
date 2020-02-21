@@ -48,12 +48,14 @@ or any other C or C++ object which supports \[\]\[\].
 Similarly, the weights (*w*, if specified) can be implemented as arrays
 or any other C++ container supporting \[\].
 
-#### Algorithm
+### Algorithm
 
 This function implements a more general variant of the method from this paper:
 R. Diamond, (1988)
 "A Note on the Rotational Superposition Problem",
  Acta Cryst. A44, pp. 211-216.
+
+#### Scale transformations
 
 This version has been augmented slightly to support scale transformations.
 (I.E. multiplication by scalars.  This can be useful for the registration
@@ -61,6 +63,16 @@ of two different annotated volumetric 3-D images of the same object taken
 at different magnifications.)
 
 Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
+
+### Rotation angle, axis, and quaternion
+If the corresponding rotation angle and rotation axis are also needed, they
+can be inferred from the ***q*** data member ("*superposer.q*" in the
+example below). After invoking Superpose(), the *q* member will store the
+[quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
+The first element of *q* will store *cos(θ/2)* (where *θ* is the
+rotation angle).  The remaining 3 elements of *q* will store the
+axis of rotation (with length *sin(θ/2)*).
+
 
 
 ##  Example usage
@@ -104,21 +116,11 @@ If you want to allow scale transformations, then use:
 superposer.Superpose(X, x, true);
 ```
 
-#### Rotation angle, axis, and quaternion
-If the corresponding rotation angle and rotation axis are also needed, they
-can be inferred from the ***q*** data member ("*superposer.q*" in the
-example above). After invoking Superpose(), the *q* member will store the
-[quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
-The first element of *q* will store *cos(θ/2)* (where *θ* is the
-rotation angle).  The remaining 3 elements of *q* will store the
-axis of rotation (with length *sin(θ/2)*).
+### Example using non-uniform weights
 
-#### Weighted RMSD
 By default point in the point cloud will be given equal weights when
 calculating RMSD.  If you want to specify different weights for each point
 (ie. *w<sub>n</sub>* in the formula above), then see the following example:
-
-#### Example using non-uniform weights
 
 ```cpp
 // ...
