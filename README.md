@@ -65,9 +65,17 @@ at different magnifications.)
 Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
 
 ### Rotation angles, axes, and quaternions
-If the corresponding rotation angle and rotation axis are also needed, they
-can be inferred from the ***q*** data member ("*superposer.q*" in the
-example below). After invoking Superpose(), the *q* member will store the
+
+If the corresponding rotation angle and rotation axis are also needed,
+they can be inferred from the ***q*** data member ("*superposer.q*" 
+in the example below), an array of size 4.  After invoking Superpose(),
+the first element of *q* will store will store *cos(θ/2)*
+(where *θ* is the rotation angle).  The remaining 3 elements of *q*
+form a vector (of length *sin(θ/2)*), pointing along the axis of rotation.
+Equivalently, *q* is the
+[quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
+
+
 [quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
 The first element of *q* will store *cos(θ/2)* (where *θ* is the
 rotation angle).  The remaining 3 elements of *q* form a vector
