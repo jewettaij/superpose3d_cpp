@@ -221,10 +221,10 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   P[3][2] = V[2];
   P[3][3] = 0.0;
 
-  // default values for p and pPp
-  Scalar p[4] = {0.0, 0.0, 0.0, 1.0};
-  Scalar pPp = 0.0;
-  Scalar rmsd = 0.0;
+  // The vector "p" contains the optimal rotation (backwards quaternion format)
+  Scalar p[4] = {0.0, 0.0, 0.0, 1.0};  // default value
+  Scalar pPp = 0.0;                    // = p^T * P * p  (zero by default)
+  Scalar rmsd = 0.0;                   // default value
 
   bool singular = N<2;  // (it doesn't make sense to rotate a single point)
   if (! singular) {

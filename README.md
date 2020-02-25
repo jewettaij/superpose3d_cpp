@@ -76,12 +76,6 @@ Equivalently, *q* is the
 [quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
 
 
-[quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
-The first element of *q* will store *cos(θ/2)* (where *θ* is the
-rotation angle).  The remaining 3 elements of *q* form a vector
-(of length *sin(θ/2)*), pointing along the axis of rotation.
-
-
 ##  Example usage
 
 ```cpp
