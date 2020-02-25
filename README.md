@@ -25,9 +25,9 @@ between corresponding points from either point cloud, where RMSD is defined as:
 
 ...where:
 ```
-   T = a translation vector (a 1-D array containing x,y,z displacements),
-   R = a rotation matrix    (a 3x3 array whose determinant = 1),
-   c = a scalar             (a number, optional, 1 by default)
+   T = a translation vector (a 1-D array containing x,y,z displacements)
+   R = a rotation matrix    (a 3x3 numpy array representing the rotation. |R|=1)
+   c = a scalar             (a number. optional. 1 by default)
 ```
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
 scale factor are stored in Superpose3D data members named
@@ -64,15 +64,14 @@ at different magnifications.)
 
 Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
 
-### Rotation angle, axis, and quaternion
+### Rotation angles, axes, and quaternions
 If the corresponding rotation angle and rotation axis are also needed, they
 can be inferred from the ***q*** data member ("*superposer.q*" in the
 example below). After invoking Superpose(), the *q* member will store the
 [quaternion corresponding to rotation *R*](https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation).
 The first element of *q* will store *cos(θ/2)* (where *θ* is the
-rotation angle).  The remaining 3 elements of *q* will store the
-axis of rotation (with length *sin(θ/2)*).
-
+rotation angle).  The remaining 3 elements of *q* form a vector
+(of length *sin(θ/2)*), pointing along the axis of rotation.
 
 
 ##  Example usage
@@ -106,7 +105,7 @@ double rmsd = superposer.Superpose(X, x);
 
 // Note: The optimal rotation, translation, and scale factor will be stored in
 //       superposer.R, superposer.T, and superposer.c, respectively.
-//       (A quaternion describing the rotation is stored in superpose.q.)
+//       (A quaternion describing the rotation is stored in superpose.q)
 ```
 *(A complete working example can be found [here](tests/test_superpose3d.cpp).)*
 

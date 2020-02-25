@@ -150,7 +150,7 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
     }
     sum_weights += weight;
   }
-  assert(sum_weights != 0.0);
+  assert((sum_weights != 0.0) || (N==0));
   for (int d=0; d < 3; d++) {
     aCenter_f[d] /= sum_weights;
     aCenter_m[d] /= sum_weights;
@@ -221,9 +221,17 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   P[3][2] = V[2];
   P[3][3] = 0.0;
 
-  Scalar p[4];
-  // The vector "p" will contain the optimal rotation (in quaternion format)
-  Scalar eval_max = eigen_calc.PrincipalEigen(P, p, true);
+  // default values for p and pPp
+  Scalar p[4] = {0.0, 0.0, 0.0, 1.0};
+  Scalar pPp = 0.0;
+  Scalar rmsd = 0.0;
+
+  bool singular = N<2;  // (it doesn't make sense to rotate a single point)
+  if (! singular) {
+    // The vector "p" will contain the optimal rotation (in quaternion format)
+    Scalar eval_max = eigen_calc.PrincipalEigen(P, p, true);
+    pPp = eval_max;  // = the maximum eigenvalue of P
+  }
 
   // Now normalize p
   Scalar pnorm = 0.0;
@@ -251,12 +259,10 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   q[2] = p[1];  //       are in the wrong order.  I correct for that here.
   q[3] = p[2];  //       "q" is the quaternion correspond to rotation R.
 
-  Scalar pPp = eval_max;
-
   // Optional: Decide the scale factor, c
   c = 1.0;   // by default, don't rescale the coordinates
 
-  if (allow_rescale) {
+  if ((allow_rescale) && (! singular)) {
     Scalar Waxaixai = 0.0;
     Scalar WaxaiXai = 0.0;
     for (size_t a=0; a < N; a++) {
@@ -282,7 +288,9 @@ Superpose(ConstArrayOfCoords aaXf, // coords for the "frozen" object
   Scalar sum_sqr_dist = E0 - c*2.0*pPp;
   if (sum_sqr_dist < 0.0) //(edge case due to rounding error)
     sum_sqr_dist = 0.0;
-  Scalar rmsd = sqrt(sum_sqr_dist/sum_weights);
+
+  if (! singular)
+    rmsd = sqrt(sum_sqr_dist/sum_weights);
 
   // Lastly, calculate the translational offset.
   // If c!=1, this is slightly more complicated than it seems.  Recall that:

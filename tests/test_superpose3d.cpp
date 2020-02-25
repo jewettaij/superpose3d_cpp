@@ -157,7 +157,9 @@ int main(int argc, char **argv) {
       RMSD += w[n] * (SQR(X[n][0] - xprime[n][0]) +
                       SQR(X[n][1] - xprime[n][1]) +
                       SQR(X[n][2] - xprime[n][2]));
-    RMSD = sqrt(RMSD / sum_w);
+    if (sum_w != 0.0)
+      RMSD = sqrt(RMSD / sum_w);
+
     if (n_point_clouds == 1)
       cout << "        superposition rmsd = " << RMSD << " (measured)\n";
 
