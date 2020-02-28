@@ -25,8 +25,8 @@ between corresponding points from either point cloud, where RMSD is defined as:
 
 ...where:
 ```
+   R = a rotation matrix    (a 3x3 array representing the rotation. |R|=1)
    T = a translation vector (a 1-D array containing x,y,z displacements)
-   R = a rotation matrix    (a 3x3 numpy array representing the rotation. |R|=1)
    c = a scalar             (a number. optional. 1 by default)
 ```
 After invoking Superpose3D::Superpose(), the optimal translation, rotation and
