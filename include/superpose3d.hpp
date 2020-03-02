@@ -36,7 +36,7 @@ private:
   Scalar **aaXm_shifted; //preallocated space for mobile point cloud (Nx3 array)
 
 public:
-  // The next 3 data members store the rotation, translation and scale
+  // The following data members store the rotation, translation and scale
   // after optimal superposition
   Scalar **R;  //!< store optimal rotation here (this is a 3x3 array).
   Scalar T[3]; //!< store optimal translation here
