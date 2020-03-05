@@ -10,13 +10,17 @@
 
 #include "lambda_lanczos.hpp"
 
-/// @brief PEigenCalculator is a class containing only one useful member
-/// function PrincipalEigen().  This function calculates the principal (largest
-/// or smallest) eigenvalue and corresponding eigenvector of an n x n matrix.
-/// This can be faster than diagionalizing the entire matrix.
-/// This code is a wrapper.  Internally, it uses the "LambdaLanczos" class.
-/// (which is more general and can work with large sparse matrices.  You can
-///  download that code here: https://github.com/mrcdr/lambda-lanczos)
+/// @brief
+///   PEigenCalculator is a class containing only one useful member function:
+///   PrincipalEigen().  This function calculates the principal (largest
+///   or smallest) eigenvalue and corresponding eigenvector of a square
+///   n x n matrix.  This can be faster than diagionalizing the entire matrix.
+///   (For example by using the Lanczos algorithm or something similar.)
+/// @note
+///   This code is a wrapper. Internally, it uses the "LambdaLanczos" class.
+/// @note
+///   For matrices larger than 13x13, PEigenCalculator::PrincipleEigen()
+///   is usually faster than Jacobi::Diagonalize().)
 
 template<typename Scalar, typename Vector, typename ConstMatrix>
 class PEigenCalculator
@@ -46,12 +50,15 @@ public:
 
 
 
+
 // -------- IMPLEMENTATION --------
+
+
 template<typename Scalar, typename Vector, typename ConstMatrix>
 Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
-  PrincipalEigen(ConstMatrix matrix,
-                 Vector eigenvector,
-                 bool find_max)
+PrincipalEigen(ConstMatrix matrix,
+               Vector eigenvector,
+               bool find_max)
 {
   assert(n > 0);
   auto matmul = [&](const std::vector<Scalar>& in, std::vector<Scalar>& out) {
@@ -67,10 +74,28 @@ Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
     vec[0] = 1.0;
   };
 
-  Scalar eval;
-  // (The next two lines do all the hard work.)
-  lambda_lanczos::LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
+  // "ll_engine" calculates the eigenvalue and eigenvector.
+  LambdaLanczos<Scalar> ll_engine(matmul, n, find_max);
+  
+  // The Lanczos algorithm selects the eigenvalue with the largest magnitude.
+  // In order to insure that this is the one we want (maxima or minima), we can
+  // add a constant to all of the eigenvalues by setting "eigenvalue_offset".
+  Scalar eval_upper_bound = 0.0;
+  for (int i = 0; i < n; i++) {
+    Scalar sum_row = 0.0;
+    for (int j = 0; j < n; i++)
+      sum_row += std::abs(matrix[i][j]);
+    if (eval_upper_bound < sum_row)
+      eval_upper_bound = sum_row;
+  }
+  if (find_max)
+    ll_engine.eigenvalue_offset = eval_upper_bound;
+  else
+    ll_engine.eigenvalue_offset = -eval_upper_bound;
+
   ll_engine.init_vector = init_vec;
+
+  Scalar eval;
 
   // This line does all of the hard work:
   size_t itern = ll_engine.run(eval, evec);
