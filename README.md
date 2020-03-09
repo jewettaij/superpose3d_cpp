@@ -15,12 +15,12 @@ Note: There is a ***python version*** of this repository
 containing the defintion of the *Superpose3D* class which performs
 rigid-body 3D point cloud registration.
 It has a public member function, *Superpose()*, which takes as arguments
-two ordered N×3 arrays representing coordinates of points
-from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*).
-It attempts to superimpose them by moving and rotating them
-(treating them as rigid bodies), and (optionally) by **scaling** (magnifying)
-them.  The goal is to minimize the root-mean-squared-distance (RMSD)
-between corresponding points from either point cloud, where RMSD is defined as:
+two N×3 arrays representing two ordered sets of points
+("clouds", denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*).
+Treating them as rigid objects, "Superpose3D()" attempts to superimpose
+them using **rotations**, **translations**, and (optionally) **scale**
+transformations in order to minimize the root-mean-squared-distance (RMSD)
+between corresponding points from either cloud, where RMSD is defined as:
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{N}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
 
 ...where:
