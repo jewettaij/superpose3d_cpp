@@ -12,15 +12,15 @@ Note: There is a ***python version*** of this repository
 [***here***](https://github.com/jewettaij/superpose3d).
 
 **superpose3d_cpp** contains a [header file](include/superpose3d.hpp)
-containing the definition of a class, *Superpose3D*.  It's single public member
-function, *Superpose()*, takes two N×3 arrays representing coordinates of points
-from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*) as arguments,
-and attempts to superimpose them (treating them as rigid bodies).
-More specifically, *Superpose3D::Superpose()* attempts to superimpose
-them using **rotations**, **translations**, and (optionally) **scale**
-transformations in order to minimize the root-mean-squared-distance (RMSD)
+containing the defintion of the *Superpose3D* class which performs
+rigid-body 3D point cloud registration.
+It has a public member function, *Superpose()*, which takes as arguments
+two ordered N×3 arrays representing coordinates of points
+from a point cloud (denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*).
+It attempts to superimpose them by moving and rotating them
+(treating them as rigid bodies), and (optionally) by **scaling** (magnifying)
+them.  The goal is to minimize the root-mean-squared-distance (RMSD)
 between corresponding points from either point cloud, where RMSD is defined as:
-
 <img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\,\frac{1}{N}\,\sum_{n=1}^N\,\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 cR_{ij}x_{nj}+T_i\right)\right|^2}"/>
 
 ...where:
@@ -34,6 +34,11 @@ scale factor are stored in Superpose3D data members named
 *T*, *R*, and *c*, respectively.
 (*T* is implemented as a C-style array, and
  *R* is implemented as a C-style 3x3 array in pointer-to-pointer format.)
+
+*Note:* This function does not attempt to determine *which* pairs of points
+from either cloud correspond.  Instead, it infers them from the order of the
+arrays.  (It assumes that the *i'th* point from *X* corresponds to the *i'th*
+point from *x*.)
 
 A weighted version of the RMSD minimization algorithm is also available
 if the caller supplies an extra argument specifying the weight of every
