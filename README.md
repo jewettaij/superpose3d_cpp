@@ -14,8 +14,8 @@ Note: There is a ***python version*** of this repository
 **superpose3d_cpp** contains a [header file](include/superpose3d.hpp)
 containing the defintion of the *Superpose3D* class which performs
 rigid-body 3D point cloud registration.
-It has a public member function, *Superpose()*, which takes as arguments
-two N×3 arrays representing two ordered sets of points
+It has a public member function, *Superpose()*, which takes
+as arguments two N×3 arrays representing two ordered sets of points
 ("clouds", denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*).
 Treating them as rigid objects, "Superpose3D()" attempts to superimpose
 them using **rotations**, **translations**, and (optionally) **scale**
@@ -29,7 +29,7 @@ between corresponding points from either cloud, where RMSD is defined as:
    T = a translation vector (a 1-D array containing x,y,z displacements)
    c = a scalar             (a number. optional. 1 by default)
 ```
-After invoking Superpose3D::Superpose(), the optimal translation, rotation and
+After invoking *Superpose()*, the optimal translation, rotation and
 scale factor are stored in Superpose3D data members named
 *T*, *R*, and *c*, respectively.
 (*T* is implemented as a C-style array, and
