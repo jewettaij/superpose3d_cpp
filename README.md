@@ -48,7 +48,7 @@ point in the cloud (*w<sub>n</sub>*).  In that case, RMSD is defined as:
 The coordinate arrays (*X<sub>ni</sub>* and *x<sub>ni</sub>*)
 can be implemented as T\*\* (pointer-to-pointer),
 vector\<vector\<T\>\>&, fixed-size arrays,
-or any other C or C++ object which supports \[\]\[\].
+or any other C or C++ object which supports \[i\]\[j\] indexing.
 (Here **T** is any real numeric type.  Complex numbers are not supported.)
 Similarly, the weights (*w*, if specified) can be implemented as arrays
 or any other C++ container supporting \[\].
@@ -170,7 +170,7 @@ is approximately 4.0e-08 seconds.
 (Details: This was measured on a single 1.7GHz i5-4210U CPU core.
 For this test, the [tests/test_superpose3d.cpp](tests/test_superpose3d.cpp)
 file was compiled using g++ with the "-Ofast" compiler flag, and then run with
-and without with the line invoking Superpose3D::Superpose() commented out.)
+and without the line invoking Superpose3D::Superpose() commented out.)
 </sub>
 
 ## Development Status: *Stable*
