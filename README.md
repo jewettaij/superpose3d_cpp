@@ -100,11 +100,8 @@ Superpose3D<double, double **> superposer(N);
 
 // "double **" is the type of array for storing coordinates in this example.
 // (If the arrays are read-only, then you can use "double const* const*".)
-// You can also use vectors or other objects which support [][]. For example:
-// Superpose3D<double, vector<vector<double>>&> superposer(N);
-// This will allocate memory to store temporary arrays used later.
-// Once created, it can be used multiple times on different point clouds of the
-// same size (without incurring the cost of memory allocation on the heap).
+// You can also use vectors or other objects which support indexing, for example
+//    Superpose3D<double, vector<vector<double>>&> superposer(N);
 
 // Calculate the optimal supperposition between the two point clouds (X and x)
 
