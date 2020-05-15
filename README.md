@@ -43,7 +43,7 @@ point from *x*.)
 A weighted version of the RMSD minimization algorithm is also available
 if the caller supplies an extra argument specifying the weight of every
 point in the cloud (*w<sub>n</sub>*).  In that case, RMSD is defined as:
-<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3 \left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad\middle/\quad\sum_{n=1}^N w_n}\right}"/>
+<img src="http://latex.codecogs.com/gif.latex?\large&space;RMSD=\sqrt{\left\sum_{n=1}^N\,w_n\,\sum_{i=1}^3\left|X_{ni}-\left(\sum_{j=1}^3 c R_{ij}x_{nj}+T_i\right)\right|^2\quad \middle/ \quad\sum_{n=1}^N w_n \right }"/>
 
 The coordinate arrays (*X<sub>ni</sub>* and *x<sub>ni</sub>*)
 can be implemented as T\*\* (pointer-to-pointer),
@@ -160,8 +160,8 @@ subdirectory to a location in your
 ## Benchmarking
 
 The performance of the algorithm is *O(N)*.
-For large *N*, the computation time required (per point in the cloud)
-is approximately 4.0e-08 seconds.
+The computation time required (per point in the cloud)
+is approximately 2.0e-06 + N×4.0e-08 seconds.
 
 <sub>
 (Details: This was measured on a single 1.7GHz i5-4210U CPU core.
