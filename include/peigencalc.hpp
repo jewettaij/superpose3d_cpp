@@ -8,8 +8,8 @@
 #define _PEIGENCALC_HPP
 
 #include <vector>
-#include "jacobi.hpp"
-using namespace jacobi_public_domain;
+#include "jacobi_pd.hpp"
+using namespace jacobi_pd;
 
 /// @brief PEigenCalculator is a class containing only one useful member
 /// function PrincipalEigen().  This function calculates the principal (largest
@@ -17,7 +17,7 @@ using namespace jacobi_public_domain;
 /// In some cases, this is faster than diagionalizing the entire matrix.
 /// @note:
 /// This particular version of the PEigenCalculator is simply a wrapper for the
-/// "jacobi_public_domain::Jacobi" class which calculates ALL the eigenvalues.
+/// "jacobi_pd::Jacobi" class which calculates ALL the eigenvalues.
 /// I only intended to apply it to 4x4 matrices, and for this size, it turns out
 /// the ordinary Jacobi eigenvalue algorithm is actually faster than some
 /// approaches that generate only one eigenvalue, such as "LambdaLancos"
