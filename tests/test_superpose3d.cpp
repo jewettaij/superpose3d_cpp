@@ -30,7 +30,6 @@
 #include <cmath>
 #include <chrono>
 #include <random>
-using namespace std;
 
 #include "superpose3d.hpp"
 using namespace superpose3d;
@@ -103,36 +102,36 @@ int main(int argc, char **argv) {
     rmsd = su.Superpose(X, x, allow_rescale);
 
     if (n_point_clouds == 1) {
-      cout << "X (frozen) = \n";
+      std::cout << "X (frozen) = \n";
       for (size_t n = 0; n < n_points; n++) {
         for (int d = 0; d < 3; d++) {
-          cout << X[n][d];
+          std::cout << X[n][d];
           if (d+1 < 3)
-            cout << " ";
+            std::cout << " ";
           else
-            cout << "\n";
+            std::cout << "\n";
         }
       }
-      cout << "x (mobile) = \n";
+      std::cout << "x (mobile) = \n";
       for (size_t n = 0; n < n_points; n++) {
         for (int d = 0; d < 3; d++) {
-          cout << x[n][d];
+          std::cout << x[n][d];
           if (d+1 < 3)
-            cout << " ";
+            std::cout << " ";
           else
-            cout << "\n";
+            std::cout << "\n";
         }
       }
-      cout << "Optimal Scale factor, C = " << su.c << "\n";
-      cout << "optimal translation, Ti =\n"
+      std::cout << "Optimal Scale factor, C = " << su.c << "\n";
+      std::cout << "optimal translation, Ti =\n"
            << su.T[0] << " " << su.T[1] << " " << su.T[2] << "\n";
-      cout << "Optimal Rotation, Rij = \n";
+      std::cout << "Optimal Rotation, Rij = \n";
       for (int iy = 0; iy < 3; iy++) {
         for (int ix = 0; ix < 3; ix++)
-          cout << su.R[iy][ix] << " ";
-        cout << "\n";
+          std::cout << su.R[iy][ix] << " ";
+        std::cout << "\n";
       }
-      cout << "Optimal superposition rmsd = " << rmsd << " (predicted)\n";
+      std::cout << "Optimal superposition rmsd = " << rmsd << " (predicted)\n";
     }
 
     // Now apply this transformation to the mobile point cloud, save the
@@ -161,7 +160,7 @@ int main(int argc, char **argv) {
       RMSD = sqrt(RMSD / sum_w);
 
     if (n_point_clouds == 1)
-      cout << "        superposition rmsd = " << RMSD << " (measured)\n";
+      std::cout << "        superposition rmsd = " << RMSD << " (measured)\n";
 
     // Compare this (direct) method for computing RMSD with the prediction
     // from Superpose3d::Superpose() (which is currently stored in "rmsd")
@@ -174,6 +173,6 @@ int main(int argc, char **argv) {
   matrix_alloc::Dealloc2D(&x);
   delete [] w;
 
-  cout << "\n" << "test passed." << endl;
+  std::cout << "\n" << "test passed." << std::endl;
   return EXIT_SUCCESS;
 } // main()

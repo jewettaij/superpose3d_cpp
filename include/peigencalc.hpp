@@ -31,12 +31,12 @@ template<typename Scalar, typename Vector, typename ConstMatrix>
 
 class PEigenCalculator
 {
-  size_t n;                      // the size of the matrices to be analyzed
-  vector<Scalar> evals;          // preallocated array for the eigenvalues
-  vector<vector<Scalar> > evecs; // preallocated array for the eigenvectors
+  size_t n;                         // the size of the matrices to be analyzed
+  std::vector<Scalar> evals;          // preallocated array for the eigenvalues
+  std::vector<std::vector<Scalar> > evecs; //preallocated array for the evectors
   Jacobi<Scalar,
-         vector<Scalar>&,
-         vector<vector<Scalar> >&,
+         std::vector<Scalar>&,
+         std::vector<std::vector<Scalar> >&,
          ConstMatrix> ecalc;
 public:
 
@@ -73,8 +73,8 @@ Scalar PEigenCalculator<Scalar, Vector, ConstMatrix>::
                     evals,
                     evecs,
                     Jacobi<Scalar,          //<--specify the sorting criteria
-                           vector<Scalar>&,
-                           vector<vector<Scalar> >&,
+                           std::vector<Scalar>&,
+                           std::vector<std::vector<Scalar> >&,
                            ConstMatrix>::SORT_DECREASING_EVALS);
 
   int which_eigenvalue = n-1;
