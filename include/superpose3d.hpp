@@ -8,12 +8,14 @@
 #define _SUPERPOSE3D_HPP
 
 
-#include "matrix_alloc.hpp" //convenient allocation function for 2D arrays
-#include "peigencalc.hpp"   //calculate eigenvalues and eigenvectors
+#include "matrix_alloc_jpd.hpp" // Defines "Alloc2D()" and "Dealloc2D()"
+#include "peigencalc.hpp"       // Calculates eigenvalues and eigenvectors
 
 
 
 namespace superpose3d {
+
+using namespace matrix_alloc_jpd;
 
 // -----------------------------------------------------------
 // ------------------------ INTERFACE ------------------------
@@ -372,22 +374,22 @@ Alloc(size_t N) {
   aWeights = new Scalar [N];
   for (size_t i = 0; i < N; i++)
     aWeights[i] = 1.0 / N;
-  matrix_alloc::Alloc2D(3, 3, &R);
-  matrix_alloc::Alloc2D(N, 3, &aaXf_shifted);
-  matrix_alloc::Alloc2D(N, 3, &aaXm_shifted);
+  Alloc2D(3, 3, &R);
+  Alloc2D(N, 3, &aaXf_shifted);
+  Alloc2D(N, 3, &aaXm_shifted);
 }
 
 template<typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::
 Dealloc() {
   if (R)
-    matrix_alloc::Dealloc2D(&R);
+    Dealloc2D(&R);
   if (aWeights)
     delete [] aWeights;
   if (aaXf_shifted)
-    matrix_alloc::Dealloc2D(&aaXf_shifted);
+    Dealloc2D(&aaXf_shifted);
   if (aaXm_shifted)
-    matrix_alloc::Dealloc2D(&aaXm_shifted);
+    Dealloc2D(&aaXm_shifted);
 }
 
 // memory management: copy and move constructor, swap, and assignment operator:

@@ -31,8 +31,11 @@
 #include <chrono>
 #include <random>
 
-#include "superpose3d.hpp"
+#include "superpose3d.hpp"      // Defines "Superpose3D"
+#include "matrix_alloc_jpd.hpp" // Defines "Alloc2D()" and "Dealloc2D()"
+
 using namespace superpose3d;
+using namespace matrix_alloc_jpd;
 
 
 int main(int argc, char **argv) {
@@ -61,11 +64,11 @@ int main(int argc, char **argv) {
     w[i] = 1.0 / n_points;
 
   // Allocate the immobile point cloud array (X) and fill it with coordinates
-  matrix_alloc::Alloc2D(n_points, 3, &X);
+  Alloc2D(n_points, 3, &X);
   // Allocate the mobile point cloud array (x) and fill it with coordinates
-  matrix_alloc::Alloc2D(n_points, 3, &x);
+  Alloc2D(n_points, 3, &x);
   // Allocate space for the transformed mobile point cloud
-  matrix_alloc::Alloc2D(n_points, 3, &xprime);
+  Alloc2D(n_points, 3, &xprime);
 
   int seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine rand_generator(seed);
@@ -168,9 +171,9 @@ int main(int argc, char **argv) {
 
   } // for (i_cl = 0; i_cl < n_point_clouds; i_cl++)
 
-  matrix_alloc::Dealloc2D(&xprime);
-  matrix_alloc::Dealloc2D(&X);
-  matrix_alloc::Dealloc2D(&x);
+  Dealloc2D(&xprime);
+  Dealloc2D(&X);
+  Dealloc2D(&x);
   delete [] w;
 
   std::cout << "\n" << "test passed." << std::endl;
