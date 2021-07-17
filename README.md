@@ -73,7 +73,7 @@ This version has been augmented slightly to support scale transformations.
 of two different annotated volumetric 3-D images of the same object taken
 at different magnifications.)
 
-Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoisomer.
+Note that if you enable scale transformations, you should be wary if the function returns a negative **c** value.  Negative **c** values correspond to inversions (reflections).  For this reason, if you are using this function to compare the conformations of molecules, you should probably set the fourth argument to *false*.  This will prevent matching a molecule with its stereoenantiomer.
 
 ### Rotation angles, axes, and quaternions
 
