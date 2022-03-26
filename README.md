@@ -116,7 +116,7 @@ double rmsd = superposer.Superpose(X, x);
 
 // Note: The optimal rotation, translation, and scale factor will be stored in
 //       superposer.R, superposer.T, and superposer.c, respectively.
-//       (A quaternion describing the rotation is stored in superpose.q)
+//       (A quaternion describing the rotation is stored in superposer.q)
 ```
 *(A complete working example can be found [here](tests/test_superpose3d.cpp).)*
 
