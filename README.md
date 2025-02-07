@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.com/jewettaij/superpose3d_cpp.svg?branch=master)](https://travis-ci.com/jewettaij/superpose3d_cpp.svg?branch=master)
 [![codecov](https://codecov.io/gh/jewettaij/superpose3d_cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/jewettaij/superpose3d_cpp)
-[![CodeQL](https://github.com/jewettaij/superpose3d_cpp/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/jewettaij/superpose3d_cpp/actions/workflows/codeql-analysis.yml)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 [![C++11](https://img.shields.io/badge/C%2B%2B-11-blue.svg)](https://isocpp.org/std/the-standard)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/jewettaij/superpose3d_cpp)]()
