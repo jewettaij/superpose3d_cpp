@@ -18,9 +18,7 @@ rigid-body 3D point cloud registration.
 It has a public member function, *Superpose()*, which takes
 as arguments two N×3 arrays representing two ordered sets of points
 ("clouds", denoted *X<sub>ni</sub>* and *x<sub>ni</sub>*).
-Treating them as rigid objects, "Superpose3D()" attempts to superimpose
-them using **rotations**, **translations**,
-Treating them as rigid objects, "Superpose3D()" attempts to superimpose
+Treating them as rigid objects, "Superpose()" superimposes
 them using **rotations**, **translations**,
 and (optionally) **scale** transformations
 in order to minimize the root-mean-squared-distance (RMSD)
