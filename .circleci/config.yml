@@ -23,6 +23,10 @@ jobs:
       - run:
           name: Build
           command: |
+            # Retrieve the code for the "jacobi_pd" submodule dependency.
+            git submodule init
+            git submodule update
+            # Now try compiling the code.
             cd tests
             g++ -g -O0 -coverage -fno-inline -fno-inline-small-functions -fno-default-inline -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
             cd ..
@@ -41,7 +45,7 @@ jobs:
             # Now use valgrind to find memory leaks and other errors:
             ### Disabling the valgrind tests for now.  See comment above.
             ### valgrind --leak-check=yes --error-exitcode=1 ./test_superpose3d 10 10
-
+            ./test_superpose3d 10 10
             bash <(curl -s https://codecov.io/bash)
             cd ..
 
