@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   linux-build-and-test:
     machine:
-      image: ubuntu-2204:current
+      image: ubuntu-2404:current
     steps:
       - checkout
       - run:
