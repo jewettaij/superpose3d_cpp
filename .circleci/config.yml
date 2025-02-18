@@ -19,7 +19,7 @@ jobs:
           name: Build
           command: |
             cd tests
-	    g++ -g -O0 -coverage -fno-inline -fno-inline-small-functions -fno-default-inline -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
+            g++ -g -O0 -coverage -fno-inline -fno-inline-small-functions -fno-default-inline -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
             cd ..
       - run:
           name: Test
