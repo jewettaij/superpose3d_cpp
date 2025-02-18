@@ -1,0 +1,43 @@
+version: 2.1
+
+jobs:
+  linux-build-and-test:
+    machine:
+      image: ubuntu-2204:current
+    steps:
+      - checkout
+      - run:
+          name: Installing SUDO
+          command: 'sudo apt-get update && sudo apt-get install -y && sudo rm -rf /var/lib/apt/lists/*'
+      - run:
+          name: Installing GCC
+          command: 'sudo apt-get update && sudo apt-get install -y g++'
+      - run:
+          name: Installing valgrind
+          command: 'sudo apt-get update && sudo apt-get install -y valgrind'
+      - run:
+          name: Build
+          command: |
+            cd tests
+	    g++ -g -O0 -coverage -fno-inline -fno-inline-small-functions -fno-default-inline -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
+            cd ..
+      - run:
+          name: Test
+          command: |
+            cd tests
+            ./test_superpose3d 4 1000
+            ./test_superpose3d 10 1000
+            ./test_superpose3d 100 1000
+            ./test_superpose3d 1000 1000
+            ./test_superpose3d 10000 100
+            ./test_superpose3d 100000 10
+            # now use valgrind to find memory leaks and other errors:
+            g++ -g -O0 -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
+            valgrind --leak-check=yes --error-exitcode=1 ./test_superpose3d 10 10
+            bash <(curl -s https://codecov.io/bash)
+            cd ..
+
+workflows:
+  main:
+    jobs:
+      - linux-build-and-test
