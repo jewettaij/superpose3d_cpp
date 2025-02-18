@@ -12,9 +12,14 @@ jobs:
       - run:
           name: Installing GCC
           command: 'sudo apt-get update && sudo apt-get install -y g++'
-      - run:
-          name: Installing valgrind
-          command: 'sudo apt-get update && sudo apt-get install -y valgrind'
+      #- run:
+      #
+      # For some reason, installing valgrind stalls.
+      # This step is using up all my credits in CircleCI.
+      # So I'm disabling the valgrind tests for now.  -Andrew 2025-2-17
+      #
+      #    name: Installing valgrind
+      #    command: 'sudo apt-get update && sudo apt-get install -y valgrind'
       - run:
           name: Build
           command: |
@@ -31,9 +36,12 @@ jobs:
             ./test_superpose3d 1000 1000
             ./test_superpose3d 10000 100
             ./test_superpose3d 100000 10
-            # now use valgrind to find memory leaks and other errors:
+            # Recompile with debug flags enabled.
             g++ -g -O0 -I../include -I../jacobi_pd/include -o test_superpose3d test_superpose3d.cpp
-            valgrind --leak-check=yes --error-exitcode=1 ./test_superpose3d 10 10
+            # Now use valgrind to find memory leaks and other errors:
+            ### Disabling the valgrind tests for now.  See comment above.
+            ### valgrind --leak-check=yes --error-exitcode=1 ./test_superpose3d 10 10
+
             bash <(curl -s https://codecov.io/bash)
             cd ..
 
